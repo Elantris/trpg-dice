@@ -18,7 +18,22 @@ client.on('message', async message => {
   }
 
   try {
-    if (/^(roll|r)(\(\d+\))?:.*$/gi.test(message.content)) {
+    if (new RegExp(`^<@!{0,1}${message.client.user?.id}>$`).test(message.content)) {
+      await message.channel.send(':game_die: Prefix', {
+        embed: {
+          fields: [
+            {
+              name: 'Roll',
+              value: '`Roll(Number): Expression`\nr: Expression',
+            },
+            {
+              name: 'Trace',
+              value: '`Trace: Message URL`\n`t: Message ID`',
+            },
+          ],
+        },
+      })
+    } else if (/^(roll|r)(\(\d+\))?:.*$/gi.test(message.content)) {
       // Roll(Number): Expression
       await rollDice(message)
     } else if (/^(trace|t):.*$/gi.test(message.content)) {
