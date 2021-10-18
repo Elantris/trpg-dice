@@ -1,9 +1,14 @@
 import { TextChannel } from 'discord.js'
 import admin, { ServiceAccount } from 'firebase-admin'
-import serviceAccount from '../../serviceAccountKey.json'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+const serviceAccount: ServiceAccount = JSON.parse(
+  readFileSync(join(__dirname, '../../serviceAccountKey.json'), { encoding: 'utf8' }),
+)
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount as ServiceAccount),
+  credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://power87-12b03.firebaseio.com',
 })
 

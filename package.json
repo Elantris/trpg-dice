@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rm -rf ./build/* && ./node_modules/.bin/tsc",
+    "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000 && pm2 monit",
+    "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit",
+    "dev": "NODE_ENV=development ts-node src/main.ts"
   },
   "repository": {
     "type": "git",
