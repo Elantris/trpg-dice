@@ -1,6 +1,8 @@
 import { Client, TextChannel } from 'discord.js'
 import { config } from 'dotenv'
+import OpenColor from 'open-color'
 import { join } from 'path'
+import help from './commands/help'
 import rollDice from './commands/rollDice'
 import trace from './commands/trace'
 import { channels } from './utils/cache'
@@ -10,29 +12,19 @@ config({
   path: join(__dirname, '..', process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'),
 })
 
-const client = new Client()
+const client = new Client({
+  intents: (1 << 12) - 1,
+})
 
-client.on('message', async message => {
+client.on('messageCreate', async message => {
   if (message.author.bot) {
     return
   }
 
   try {
     if (new RegExp(`^<@!{0,1}${message.client.user?.id}>$`).test(message.content)) {
-      await message.channel.send(':game_die: Prefix', {
-        embed: {
-          fields: [
-            {
-              name: 'Roll',
-              value: '`Roll(Number): Expression`\nr: Expression',
-            },
-            {
-              name: 'Trace',
-              value: '`Trace: Message URL`\n`t: Message ID`',
-            },
-          ],
-        },
-      })
+      // <@!898765970267570186>
+      await help(message)
     } else if (/^(roll|r)(\(\d+\))?:.*$/gi.test(message.content)) {
       // Roll(Number): Expression
       await rollDice(message)
@@ -41,17 +33,18 @@ client.on('message', async message => {
       await trace(message)
     }
   } catch (error) {
-    message.channel.send(':fire: something went wrong')
-    channels['logger']?.send(
-      '`TIME` CONTENT'
+    message.channel.send(':fire: 好像發生了點問題')
+    channels['logger']?.send({
+      content: '`TIME` CONTENT'
         .replace('TIME', timeFormatter({ time: message.createdTimestamp }))
         .replace('CONTENT', message.content),
-      {
-        embed: {
+      embeds: [
+        {
+          color: parseInt(OpenColor.red[5].replace('#', '0x')),
           description: '```ERROR```'.replace('ERROR', `${error}`),
         },
-      },
-    )
+      ],
+    })
   }
 })
 

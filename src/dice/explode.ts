@@ -2,7 +2,7 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const roll: (times: number, sides: number) => RollResult = (times, sides) => {
+const explode: (times: number, sides: number) => RollResult = (times, sides) => {
   if (times > 20) {
     throw new Error('times should be 1 ~ 20')
   }
@@ -11,9 +11,13 @@ const roll: (times: number, sides: number) => RollResult = (times, sides) => {
   }
 
   const rolls: number[] = []
-
-  for (let i = 0; i < times; i++) {
-    rolls.push(randomInt(1, sides))
+  let count = 0
+  while (count < times) {
+    const roll = randomInt(1, sides)
+    if (roll < sides) {
+      count += 1
+    }
+    rolls.push(roll)
   }
 
   return {
@@ -22,4 +26,4 @@ const roll: (times: number, sides: number) => RollResult = (times, sides) => {
   }
 }
 
-export default roll
+export default explode

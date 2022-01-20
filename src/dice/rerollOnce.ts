@@ -8,10 +8,6 @@ const rerollOnce: (times: number, sides: number, minimum: number, chooseHigher?:
   minimum,
   chooseHigher = false,
 ) => {
-  if (times < 1 || sides < 1 || minimum < 1) {
-    throw new Error('invalid number')
-  }
-
   if (minimum > sides) {
     throw new Error('invalid minimum')
   }
@@ -32,7 +28,7 @@ const rerollOnce: (times: number, sides: number, minimum: number, chooseHigher?:
   }
 
   return {
-    total: sum(results),
+    value: sum(results),
     rolls,
   }
 }

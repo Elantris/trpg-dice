@@ -17,6 +17,6 @@ export const database = admin.database()
 export const channels: { [key in string]?: TextChannel } = {}
 
 export type RollResult = {
-  total: number
+  value: number
   rolls: number[]
 }

@@ -3,10 +3,6 @@ import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
 const reroll: (times: number, sides: number, minimum: number) => RollResult = (times, sides, minimum) => {
-  if (times < 1 || sides < 1 || minimum < 1) {
-    throw new Error('invalid number')
-  }
-
   if (minimum > sides) {
     throw new Error('invalid minimum')
   }
@@ -23,7 +19,7 @@ const reroll: (times: number, sides: number, minimum: number) => RollResult = (t
   }
 
   return {
-    total: sum(results),
+    value: sum(results),
     rolls,
   }
 }

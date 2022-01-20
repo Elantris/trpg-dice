@@ -23,18 +23,19 @@ const trace: (message: Message) => Promise<void> = async message => {
 
   const logMessageId = (await database.ref(`/diceLogs/${targetMessageId}`).once('value')).val()
   if (!logMessageId) {
-    await message.channel.send(':question: `MESSAGE_ID` is not a dice command'.replace('MESSAGE_ID', targetMessageId))
+    await message.channel.send(':x: `MESSAGE_ID` 沒有擲骰紀錄'.replace('MESSAGE_ID', targetMessageId))
     return
   }
 
   const logMessage = await channels['logger']?.messages.fetch(logMessageId).catch(() => null)
   if (!logMessage) {
-    await message.channel.send(':x: `MESSAGE_ID` is not found'.replace('MESSAGE_ID', logMessageId))
+    await message.channel.send(':question: `MESSAGE_ID` 記錄遺失了'.replace('MESSAGE_ID', logMessageId))
     return
   }
 
-  await message.channel.send(':mag_right: `MESSAGE_ID`'.replace('MESSAGE_ID', targetMessageId), {
-    embed: logMessage.embeds[0],
+  await message.channel.send({
+    content: ':mag_right: `MESSAGE_ID`'.replace('MESSAGE_ID', targetMessageId),
+    embeds: logMessage.embeds,
   })
 }
 
