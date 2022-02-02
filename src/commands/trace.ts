@@ -2,7 +2,7 @@ import { Message } from 'discord.js'
 import { channels, database } from '../utils/cache'
 
 const trace: (message: Message) => Promise<void> = async message => {
-  const search = message.content.split(':').slice(1).join(':').trim()
+  const search = message.reference?.messageId || message.content.replace(/^(trace|t):/i, '').trim()
 
   let targetMessageId = ''
   if (/^https:\/\/\S*\/channels\/\d+\/\d+\/\d+$/.test(search)) {

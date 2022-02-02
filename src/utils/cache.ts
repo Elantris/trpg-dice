@@ -9,7 +9,7 @@ const serviceAccount: ServiceAccount = JSON.parse(
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://power87-12b03.firebaseio.com',
+  databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
 })
 
 export const database = admin.database()

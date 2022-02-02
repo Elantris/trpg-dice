@@ -1,11 +1,12 @@
 import { Message, MessageEmbedOptions } from 'discord.js'
 import OpenColor from 'open-color'
+import colorFormatter from '../utils/colorFormatter'
 
 const MANUALS: {
   [key in 'roll' | 'trace']: MessageEmbedOptions
 } = {
   roll: {
-    color: parseInt(OpenColor.indigo[5].replace('#', '0x')),
+    color: colorFormatter(OpenColor.indigo[5]),
     description: `
 :game_die: **Roll Dice**
 計算一個四則運算的算式，並將其中的骰子語法替換成擲骰結果
@@ -31,7 +32,7 @@ const MANUALS: {
     ],
   },
   trace: {
-    color: parseInt(OpenColor.indigo[5].replace('#', '0x')),
+    color: colorFormatter(OpenColor.indigo[5]),
     description: `
 :game_die: **Trace Results**
 查看一則指令中所有的擲骰結果

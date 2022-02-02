@@ -3,9 +3,12 @@ import { config } from 'dotenv'
 import OpenColor from 'open-color'
 import { join } from 'path'
 import help from './commands/help'
+import pick from './commands/pick'
+import poll from './commands/poll'
 import rollDice from './commands/rollDice'
 import trace from './commands/trace'
 import { channels } from './utils/cache'
+import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
 
 config({
@@ -25,12 +28,18 @@ client.on('messageCreate', async message => {
     if (new RegExp(`^<@!{0,1}${message.client.user?.id}>$`).test(message.content)) {
       // <@!898765970267570186>
       await help(message)
-    } else if (/^(roll|r)(\(\d+\))?:.*$/gi.test(message.content)) {
+    } else if (/^(roll|r)(\(\d+\))?:/i.test(message.content)) {
       // Roll(Number): Expression
       await rollDice(message)
-    } else if (/^(trace|t):.*$/gi.test(message.content)) {
+    } else if (/^(trace|t):/i.test(message.content)) {
       // Trace: Message Search
       await trace(message)
+    } else if (/^(poll):/i.test(message.content) && /\n/.test(message.content)) {
+      // Poll: Question\nChoice 1\nChoice 2
+      await poll(message)
+    } else if (/^(pick|p):/i.test(message.content)) {
+      // Pick: choice1 choice2
+      await pick(message)
     }
   } catch (error) {
     message.channel.send(':fire: 好像發生了點問題')
@@ -40,7 +49,7 @@ client.on('messageCreate', async message => {
         .replace('CONTENT', message.content),
       embeds: [
         {
-          color: parseInt(OpenColor.red[5].replace('#', '0x')),
+          color: colorFormatter(OpenColor.red[5]),
           description: '```ERROR```'.replace('ERROR', `${error}`),
         },
       ],
@@ -49,11 +58,11 @@ client.on('messageCreate', async message => {
 })
 
 client.on('ready', async () => {
+  client.user?.setActivity('2021.02.03')
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
   if (loggerChannel instanceof TextChannel) {
     channels['logger'] = loggerChannel
   }
-  channels['logger']?.send(`\`${timeFormatter()}\` ${client.user?.tag}`)
 })
 
 client.login(process.env['TOKEN'])

@@ -14,6 +14,7 @@ import rollWithLower from '../dice/rollWithLower'
 import rollWithUpper from '../dice/rollWithUpper'
 import success from '../dice/success'
 import { channels, database, RollResult } from '../utils/cache'
+import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
 const getParameter: (expression: string) => number[] = expression =>
@@ -195,17 +196,42 @@ const rollDice: (message: Message) => Promise<void> = async message => {
           .replace('VALUE', `${eval(resultExpression)}`),
       )
     }
-  } catch (error) {
-    message.channel.send(':x: 語法參數錯誤')
+  } catch (error: any) {
+    message.channel
+      .send(':x: 語法參數錯誤')
+      .then(responseMessage => {
+        channels['logger']
+          ?.send({
+            embeds: [
+              {
+                color: colorFormatter(OpenColor.red[5]),
+                description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES\n```ERROR```'
+                  .replace('MESSAGE_LINK', responseMessage.url)
+                  .replace('EXPRESSION', expression)
+                  .replace('TIMES', `${times}`)
+                  .replace('ERROR', error),
+              },
+            ],
+          })
+          .then(message => {
+            database
+              .ref(`/diceLogs/${responseMessage.id}`)
+              .set(message.id)
+              .catch(() => {})
+          })
+          .catch(() => {})
+      })
+      .catch(() => {})
+
     return
   }
 
   const responseMessage = await message.channel.send(responseContents.join('\n'))
-  const logMessage = await channels['logger']
+  channels['logger']
     ?.send({
       embeds: [
         {
-          color: parseInt(OpenColor.violet[5].replace('#', '0x')),
+          color: colorFormatter(OpenColor.violet[5]),
           author: {
             iconURL: message.author.displayAvatarURL(),
             name: message.author.tag,
@@ -228,17 +254,18 @@ const rollDice: (message: Message) => Promise<void> = async message => {
                 )
                 .join('\n'),
             })),
-          timestamp: message.createdAt.toISOString(),
+          timestamp: message.createdAt,
           footer: { text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms` },
         },
       ],
     })
+    .then(message => {
+      database
+        .ref(`/diceLogs/${responseMessage.id}`)
+        .set(message.id)
+        .catch(() => {})
+    })
     .catch(() => {})
-  logMessage &&
-    (await database
-      .ref(`/diceLogs/${responseMessage.id}`)
-      .set(logMessage.id)
-      .catch(() => {}))
 }
 
 export default rollDice
