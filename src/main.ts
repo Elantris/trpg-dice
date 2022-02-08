@@ -58,7 +58,7 @@ client.on('messageCreate', async message => {
 })
 
 client.on('ready', async () => {
-  client.user?.setActivity('2021.02.03')
+  client.user?.setActivity('2022.02.08')
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
   if (loggerChannel instanceof TextChannel) {
     channels['logger'] = loggerChannel
