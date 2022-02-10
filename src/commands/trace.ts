@@ -21,7 +21,7 @@ const trace: (message: Message) => Promise<void> = async message => {
     return
   }
 
-  const logMessageId = (await database.ref(`/diceLogs/${targetMessageId}`).once('value')).val()
+  const logMessageId = (await database.ref(`/logs/${targetMessageId}`).once('value')).val()
   if (!logMessageId) {
     await message.channel.send(':x: `MESSAGE_ID` 沒有擲骰紀錄'.replace('MESSAGE_ID', targetMessageId))
     return

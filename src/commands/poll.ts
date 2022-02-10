@@ -7,7 +7,7 @@ const choiceEmojis: string[] = '🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 �
 )
 
 const poll: (message: Message) => Promise<void> = async message => {
-  const choices = message.content.split('\n')
+  const choices = message.content.split('\n').filter(v => v)
   const question = choices
     .splice(0, 1)[0]
     .replace(/^(poll):/i, '')

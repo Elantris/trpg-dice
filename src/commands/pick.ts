@@ -8,6 +8,7 @@ const pick: (message: Message) => Promise<void> = async message => {
     .replace(/^(pick|p):/i, '')
     .trim()
     .split(/\s/)
+    .filter(v => v)
 
   if (!choices.length) {
     return
@@ -15,9 +16,9 @@ const pick: (message: Message) => Promise<void> = async message => {
 
   const pickedChoice = choices[Math.floor(Math.random() * choices.length)]
 
-  const responseMessage = await message.channel.send(pickedChoice)
-  channels['logger']
-    ?.send({
+  try {
+    const responseMessage = await message.channel.send(pickedChoice)
+    const logMessage = await channels['logger']?.send({
       embeds: [
         {
           color: colorFormatter(OpenColor.cyan[5]),
@@ -41,17 +42,15 @@ const pick: (message: Message) => Promise<void> = async message => {
             },
           ],
           timestamp: message.createdAt,
-          footer: { text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms` },
+          footer: {
+            text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
+          },
         },
       ],
     })
-    .then(() => {
-      database
-        .ref(`/pickLogs/${responseMessage.id}`)
-        .set(message.id)
-        .catch(() => {})
-    })
-    .catch(() => {})
+
+    logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
+  } catch {}
 }
 
 export default pick

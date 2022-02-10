@@ -175,6 +175,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
 
   const commandResults: RollResult[][] = []
   const responseContents: string[] = [`Roll(**${times}**): \`${expression}\``]
+  let commandError: Error | undefined = undefined
 
   try {
     for (let i = 0; i < times; i++) {
@@ -197,41 +198,15 @@ const rollDice: (message: Message) => Promise<void> = async message => {
       )
     }
   } catch (error: any) {
-    message.channel
-      .send(':x: 語法參數錯誤')
-      .then(responseMessage => {
-        channels['logger']
-          ?.send({
-            embeds: [
-              {
-                color: colorFormatter(OpenColor.red[5]),
-                description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES\n```ERROR```'
-                  .replace('MESSAGE_LINK', responseMessage.url)
-                  .replace('EXPRESSION', expression)
-                  .replace('TIMES', `${times}`)
-                  .replace('ERROR', error),
-              },
-            ],
-          })
-          .then(message => {
-            database
-              .ref(`/diceLogs/${responseMessage.id}`)
-              .set(message.id)
-              .catch(() => {})
-          })
-          .catch(() => {})
-      })
-      .catch(() => {})
-
-    return
+    commandError = error
   }
 
-  const responseMessage = await message.channel.send(responseContents.join('\n'))
-  channels['logger']
-    ?.send({
+  try {
+    const responseMessage = await message.channel.send(commandError ? ':x: 語法參數錯誤' : responseContents.join('\n'))
+    const logMessage = await channels['logger']?.send({
       embeds: [
         {
-          color: colorFormatter(OpenColor.violet[5]),
+          color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
           author: {
             iconURL: message.author.displayAvatarURL(),
             name: message.author.tag,
@@ -240,32 +215,37 @@ const rollDice: (message: Message) => Promise<void> = async message => {
             .replace('MESSAGE_LINK', responseMessage.url)
             .replace('EXPRESSION', expression)
             .replace('TIMES', `${times}`),
-          fields: commandResults
-            .filter(rollResults => rollResults.length)
-            .map((rollResults, index) => ({
-              name: `${index + 1}`,
-              value: rollResults
-                .map((result, index) =>
-                  '`DICE_EXPRESSION` = (METHOD) `DICE_ROLLS` = **VALUE**'
-                    .replace('DICE_EXPRESSION', diceExpressions[index].content)
-                    .replace('METHOD', diceExpressions[index].method)
-                    .replace('DICE_ROLLS', JSON.stringify(result.rolls))
-                    .replace('VALUE', `${result.value}`),
-                )
-                .join('\n'),
-            })),
+          fields: commandError
+            ? [
+                {
+                  name: 'Error',
+                  value: '```ERROR```'.replace('ERROR', `${commandError}`),
+                },
+              ]
+            : commandResults
+                .filter(rollResults => rollResults.length)
+                .map((rollResults, index) => ({
+                  name: `${index + 1}`,
+                  value: rollResults
+                    .map((result, index) =>
+                      '`DICE_EXPRESSION` = (METHOD) `DICE_ROLLS` = **VALUE**'
+                        .replace('DICE_EXPRESSION', diceExpressions[index].content)
+                        .replace('METHOD', diceExpressions[index].method)
+                        .replace('DICE_ROLLS', JSON.stringify(result.rolls))
+                        .replace('VALUE', `${result.value}`),
+                    )
+                    .join('\n'),
+                })),
           timestamp: message.createdAt,
-          footer: { text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms` },
+          footer: {
+            text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
+          },
         },
       ],
     })
-    .then(message => {
-      database
-        .ref(`/diceLogs/${responseMessage.id}`)
-        .set(message.id)
-        .catch(() => {})
-    })
-    .catch(() => {})
+
+    logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
+  } catch {}
 }
 
 export default rollDice

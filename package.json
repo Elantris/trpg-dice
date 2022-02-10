@@ -22,7 +22,7 @@
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
     "@types/luxon": "^2.0.9",
-    "@types/node": "^17.0.16",
+    "@types/node": "^17.0.17",
     "@types/ramda": "^0.27.64",
     "@types/ws": "^8.2.2",
     "discord.js": "^13.6.0",

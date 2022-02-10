@@ -25,8 +25,8 @@ client.on('messageCreate', async message => {
   }
 
   try {
-    if (new RegExp(`^<@!{0,1}${message.client.user?.id}>$`).test(message.content)) {
-      // <@!898765970267570186>
+    if (/^(help|h):/i.test(message.content)) {
+      // Help: Command
       await help(message)
     } else if (/^(roll|r)(\(\d+\))?:/i.test(message.content)) {
       // Roll(Number): Expression
@@ -38,7 +38,7 @@ client.on('messageCreate', async message => {
       // Poll: Question\nChoice 1\nChoice 2
       await poll(message)
     } else if (/^(pick|p):/i.test(message.content)) {
-      // Pick: choice1 choice2
+      // Pick: Choice1 Choice2
       await pick(message)
     }
   } catch (error) {
@@ -58,11 +58,14 @@ client.on('messageCreate', async message => {
 })
 
 client.on('ready', async () => {
-  client.user?.setActivity('2022.02.08')
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
   if (loggerChannel instanceof TextChannel) {
     channels['logger'] = loggerChannel
   }
+
+  setInterval(() => {
+    client.user?.setActivity('2022-02-11')
+  }, 60000)
 })
 
 client.login(process.env['TOKEN'])
