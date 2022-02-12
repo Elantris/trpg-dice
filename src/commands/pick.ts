@@ -7,8 +7,7 @@ const pick: (message: Message) => Promise<void> = async message => {
   const choices = message.content
     .replace(/^(pick|p):/i, '')
     .trim()
-    .split(/\s/)
-    .filter(v => v)
+    .split(/\s+/)
 
   if (!choices.length) {
     return

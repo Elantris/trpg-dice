@@ -3,6 +3,7 @@ import { config } from 'dotenv'
 import OpenColor from 'open-color'
 import { join } from 'path'
 import help from './commands/help'
+import luck from './commands/luck'
 import pick from './commands/pick'
 import poll from './commands/poll'
 import rollDice from './commands/rollDice'
@@ -25,7 +26,9 @@ client.on('messageCreate', async message => {
   }
 
   try {
-    if (/^(help|h):/i.test(message.content)) {
+    if (new RegExp(`<@!{0,1}${message.client.user?.id}>`).test(message.content)) {
+      await luck(message)
+    } else if (/^(help|h):/i.test(message.content)) {
       // Help: Command
       await help(message)
     } else if (/^(roll|r)(\(\d+\))?:/i.test(message.content)) {
@@ -64,7 +67,7 @@ client.on('ready', async () => {
   }
 
   setInterval(() => {
-    client.user?.setActivity('2022-02-11')
+    client.user?.setActivity('help: default')
   }, 60000)
 })
 

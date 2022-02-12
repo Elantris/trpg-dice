@@ -27,7 +27,7 @@ const MANUALS: {
 \`Roll(Number): Expression\`
 1. 前綴 Roll 可簡寫為 R，大小寫皆可
 2. (Number) 為重複擲骰次數，可省略，預設 1 次、最多 20 次
-3. 冒號後面為一個算式，支援基本四則運算、[骰子語法](https://wiki.rptools.info/index.php/Dice_Expressions)
+3. Expression 為一個基本四則運算的式子、[骰子語法](https://wiki.rptools.info/index.php/Dice_Expressions)
 `.trim(),
       },
       {
@@ -68,7 +68,7 @@ const MANUALS: {
   poll: {
     color: colorFormatter(OpenColor.indigo[5]),
     description: `
-:game_die: **Poll**s
+:game_die: **Poll**
 建立一則用表情符號投票的訊息
 `.trim(),
     fields: [
@@ -125,7 +125,7 @@ p: 可以色色 不可以色色
 }
 
 const help: (message: Message) => Promise<void> = async message => {
-  const manual = MANUALS[message.content.split(/[:\s]/)[1].toLowerCase()] || MANUALS['default']
+  const manual = MANUALS[message.content.split(/[:\s]+/)[1].toLowerCase()] || MANUALS['default']
 
   if (manual) {
     await message.channel.send({
