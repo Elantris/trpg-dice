@@ -1,7 +1,9 @@
+require('dotenv').config({
+  path: `${__dirname}/../${process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'}`,
+})
+
 import { Client, TextChannel } from 'discord.js'
-import { config } from 'dotenv'
 import OpenColor from 'open-color'
-import { join } from 'path'
 import help from './commands/help'
 import luck from './commands/luck'
 import pick from './commands/pick'
@@ -11,10 +13,6 @@ import trace from './commands/trace'
 import { channels } from './utils/cache'
 import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
-
-config({
-  path: join(__dirname, '..', process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'),
-})
 
 const client = new Client({
   intents: (1 << 12) - 1,
@@ -28,21 +26,21 @@ client.on('messageCreate', async message => {
   try {
     if (new RegExp(`<@!{0,1}${message.client.user?.id}>`).test(message.content)) {
       await luck(message)
-    } else if (/^(help|h):/i.test(message.content)) {
-      // Help: Command
-      await help(message)
     } else if (/^(roll|r)(\(\d+\))?:/i.test(message.content)) {
       // Roll(Number): Expression
       await rollDice(message)
-    } else if (/^(trace|t):/i.test(message.content)) {
-      // Trace: Message Search
-      await trace(message)
     } else if (/^(poll):/i.test(message.content) && /\n/.test(message.content)) {
       // Poll: Question\nChoice 1\nChoice 2
       await poll(message)
     } else if (/^(pick|p):/i.test(message.content)) {
       // Pick: Choice1 Choice2
       await pick(message)
+    } else if (/^(help|h):/i.test(message.content)) {
+      // Help: Command
+      await help(message)
+    } else if (/^(trace|t):/i.test(message.content)) {
+      // Trace: Message Search
+      await trace(message)
     }
   } catch (error) {
     message.channel.send(':fire: 好像發生了點問題')

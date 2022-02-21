@@ -1,14 +1,12 @@
 import { TextChannel } from 'discord.js'
-import admin, { ServiceAccount } from 'firebase-admin'
-import { readFileSync } from 'fs'
-import { join } from 'path'
-
-const serviceAccount: ServiceAccount = JSON.parse(
-  readFileSync(join(__dirname, '../../serviceAccountKey.json'), { encoding: 'utf8' }),
-)
+import admin from 'firebase-admin'
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    projectId: 'trpg-dice-19e3e',
+    clientEmail: 'firebase-adminsdk-kf7kg@trpg-dice-19e3e.iam.gserviceaccount.com',
+    privateKey: process.env['PRIVATE_KEY'],
+  }),
   databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
 })
 

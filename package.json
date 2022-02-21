@@ -3,7 +3,11 @@
   "description": "",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": "16.x"
+  },
   "scripts": {
+    "start": "node build/main.js",
     "build": "rm -rf ./build/* && ./node_modules/.bin/tsc",
     "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000 && pm2 monit",
     "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit",
@@ -22,9 +26,9 @@
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
     "@types/luxon": "^2.0.9",
-    "@types/node": "^17.0.17",
+    "@types/node": "^17.0.18",
     "@types/ramda": "^0.27.64",
-    "@types/ws": "^8.2.2",
+    "@types/ws": "^8.2.3",
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
     "firebase-admin": "^10.0.2",
