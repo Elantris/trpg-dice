@@ -39,6 +39,7 @@ type DICE_METHODS =
   | 'addLowerBound'
   | 'subtractUpperBound'
   | 'subtractLowerBound'
+
 const DICE_OPERATIONS: {
   [name in DICE_METHODS]?: {
     regexp: RegExp
@@ -201,51 +202,49 @@ const rollDice: (message: Message) => Promise<void> = async message => {
     commandError = error
   }
 
-  try {
-    const responseMessage = await message.channel.send(commandError ? ':x: 語法參數錯誤' : responseContents.join('\n'))
-    const logMessage = await channels['logger']?.send({
-      embeds: [
-        {
-          color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
-          author: {
-            iconURL: message.author.displayAvatarURL(),
-            name: message.author.tag,
-          },
-          description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES'
-            .replace('MESSAGE_LINK', responseMessage.url)
-            .replace('EXPRESSION', expression)
-            .replace('TIMES', `${times}`),
-          fields: commandError
-            ? [
-                {
-                  name: 'Error',
-                  value: '```ERROR```'.replace('ERROR', `${commandError}`),
-                },
-              ]
-            : commandResults
-                .filter(rollResults => rollResults.length)
-                .map((rollResults, index) => ({
-                  name: `${index + 1}`,
-                  value: rollResults
-                    .map((result, index) =>
-                      '`DICE_EXPRESSION` = (METHOD) `DICE_ROLLS` = **VALUE**'
-                        .replace('DICE_EXPRESSION', diceExpressions[index].content)
-                        .replace('METHOD', diceExpressions[index].method)
-                        .replace('DICE_ROLLS', JSON.stringify(result.rolls))
-                        .replace('VALUE', `${result.value}`),
-                    )
-                    .join('\n'),
-                })),
-          timestamp: message.createdAt,
-          footer: {
-            text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
-          },
+  const responseMessage = await message.channel.send(commandError ? ':x: 語法參數錯誤' : responseContents.join('\n'))
+  const logMessage = await channels['logger']?.send({
+    embeds: [
+      {
+        color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
+        author: {
+          iconURL: message.author.displayAvatarURL(),
+          name: message.author.tag,
         },
-      ],
-    })
+        description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES'
+          .replace('MESSAGE_LINK', responseMessage.url)
+          .replace('EXPRESSION', expression)
+          .replace('TIMES', `${times}`),
+        fields: commandError
+          ? [
+              {
+                name: 'Error',
+                value: '```ERROR```'.replace('ERROR', `${commandError}`),
+              },
+            ]
+          : commandResults
+              .filter(rollResults => rollResults.length)
+              .map((rollResults, index) => ({
+                name: `${index + 1}`,
+                value: rollResults
+                  .map((result, index) =>
+                    '`DICE_EXPRESSION` = (METHOD) `DICE_ROLLS` = **VALUE**'
+                      .replace('DICE_EXPRESSION', diceExpressions[index].content)
+                      .replace('METHOD', diceExpressions[index].method)
+                      .replace('DICE_ROLLS', JSON.stringify(result.rolls))
+                      .replace('VALUE', `${result.value}`),
+                  )
+                  .join('\n'),
+              })),
+        timestamp: message.createdAt,
+        footer: {
+          text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
+        },
+      },
+    ],
+  })
 
-    logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
-  } catch {}
+  logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
 }
 
 export default rollDice
