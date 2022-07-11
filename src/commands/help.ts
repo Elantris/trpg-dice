@@ -12,6 +12,8 @@ const MANUALS: {
 :game_die: \`trace\`: 查看一則指令結果的詳細資訊
 :game_die: \`poll\`: 建立一則用表情符號投票的訊息
 :game_die: \`pick\`: 隨機抽選訊息內容中的其中一個選項
+
+更多詳細功能請參考完整 [說明文件](https://hackmd.io/@eelayntris/eedice)
 `.trim(),
   },
   roll: {
@@ -24,9 +26,9 @@ const MANUALS: {
       {
         name: '語法',
         value: `
-\`Roll(Number): Expression\`
+\`Roll(Count): Expression\`
 1. 前綴 Roll 可簡寫為 R，大小寫皆可
-2. (Number) 為重複擲骰次數，可省略，預設 1 次、最多 20 次
+2. (Count) 為重複擲骰次數，可省略，預設 1 次、最多 20 次
 3. Expression 為一個基本四則運算的式子、[骰子語法](https://wiki.rptools.info/index.php/Dice_Expressions)
 `.trim(),
       },
@@ -65,6 +67,30 @@ const MANUALS: {
       },
     ],
   },
+  pick: {
+    color: colorFormatter(OpenColor.indigo[5]),
+    description: `
+:game_die: **Pick**
+隨機抽選訊息內容中的其中一個選項
+`.trim(),
+    fields: [
+      {
+        name: '語法',
+        value: `
+\`Pick: Choice1 Choice2 Choice3\`
+1. 前綴 Pick 可簡寫為 P，大小寫皆可
+2. 冒號後面為選項，以空白分隔
+`.trim(),
+      },
+      {
+        name: '範例',
+        value: `
+Pick: 紅色 綠色 藍色
+p: 可以色色 不可以色色
+`.trim(),
+      },
+    ],
+  },
   poll: {
     color: colorFormatter(OpenColor.indigo[5]),
     description: `
@@ -98,34 +124,18 @@ SEVEN
       },
     ],
   },
-  pick: {
-    color: colorFormatter(OpenColor.indigo[5]),
-    description: `
-:game_die: **Pick**
-隨機抽選訊息內容中的其中一個選項
-`.trim(),
-    fields: [
-      {
-        name: '語法',
-        value: `
-\`Pick: Choice1 Choice2 Choice3\`
-1. 前綴 Pick 可簡寫為 P，大小寫皆可
-2. 冒號後面為選項，以空白分隔
-`.trim(),
-      },
-      {
-        name: '範例',
-        value: `
-Pick: 紅色、綠色、藍色
-p: 可以色色 不可以色色
-`.trim(),
-      },
-    ],
-  },
+}
+
+const manualsMap: { [key in string]?: string } = {
+  r: 'roll',
+  t: 'trace',
+  p: 'pick',
 }
 
 const help: (message: Message) => Promise<void> = async message => {
-  const manual = MANUALS[message.content.split(/[:\s]+/)[1].toLowerCase()] || MANUALS['default']
+  const search = message.content.split(/[:\s]+/)[1].toLowerCase()
+  const key = manualsMap[search] || search
+  const manual = MANUALS[key] || MANUALS['default']
 
   if (manual) {
     await message.channel.send({

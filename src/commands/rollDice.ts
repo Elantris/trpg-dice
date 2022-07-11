@@ -17,9 +17,6 @@ import { channels, database, RollResult } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
-const getParameter: (expression: string) => number[] = expression =>
-  expression.split(/[A-Za-z]+/gi).map(v => parseInt(v) || 1)
-
 type DICE_METHODS =
   | 'roll'
   | 'drop'
@@ -119,11 +116,14 @@ const DICE_OPERATIONS: {
     exec: data => rollWithLower(data[0], data[1], data[3], data[2] * -1),
   },
 }
-const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi
+const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
 const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`, 'gi')
 
+const getParameters: (expression: string) => number[] = expression =>
+  expression.split(/[a-z]+/gi).map(v => parseInt(v) || 1)
+
 const rollDice: (message: Message) => Promise<void> = async message => {
-  const times = /^(roll|r)(\(\d+\)):.*$/gi.test(message.content)
+  const times = /^(roll|r)(\(\d+\)):.+$/gi.test(message.content)
     ? parseInt(message.content.match(/\(\d+/g)?.[0].slice(1) || '1')
     : 1
   if (!Number.isSafeInteger(times) || times < 1 || times > 20) {
@@ -135,8 +135,12 @@ const rollDice: (message: Message) => Promise<void> = async message => {
     .slice(message.content.indexOf(':') + 1)
     .replace(/\s+/g, '')
     .trim()
-  if (expression.length > 100) {
-    message.channel.send(':x: 算式長度限 100 字元')
+  if (!expression) {
+    return
+  }
+  if (expression.length > 50) {
+    message.channel.send(':x: 算式長度限 50 字元')
+    return
   }
   EXPRESSION_REGEXP.lastIndex = 0
   if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
@@ -152,9 +156,9 @@ const rollDice: (message: Message) => Promise<void> = async message => {
     expression
       .match(DICE_REGEXP)
       ?.map(content => {
-        let key: DICE_METHODS
-        for (key in DICE_OPERATIONS) {
-          const regexp = DICE_OPERATIONS[key]?.regexp
+        let method: DICE_METHODS
+        for (method in DICE_OPERATIONS) {
+          const regexp = DICE_OPERATIONS[method]?.regexp
           if (!regexp) {
             continue
           }
@@ -162,7 +166,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
           if (regexp.test(content)) {
             return {
               content,
-              method: key,
+              method,
             }
           }
         }
@@ -170,7 +174,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
       })
       .filter(notEmpty) || []
   if (diceExpressions.length > 10) {
-    message.channel.send(':x: 算式裡的骰子語法最多 10 個')
+    message.channel.send(':x: 算式裡的骰子語法最多 5 個')
     return
   }
 
@@ -184,7 +188,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
       const rollResults: RollResult[] = []
 
       for (const diceExpression of diceExpressions) {
-        const result = DICE_OPERATIONS[diceExpression.method]?.exec(getParameter(diceExpression.content))
+        const result = DICE_OPERATIONS[diceExpression.method]?.exec(getParameters(diceExpression.content))
         if (result) {
           resultExpression = resultExpression.replace(diceExpression.content, `${result.value}`)
           rollResults.push(result)

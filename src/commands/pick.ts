@@ -2,12 +2,14 @@ import { Message } from 'discord.js'
 import OpenColor from 'open-color'
 import { channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
+import notEmpty from '../utils/notEmpty'
 
 const pick: (message: Message) => Promise<void> = async message => {
   const choices = message.content
     .replace(/^(pick|p):/i, '')
     .trim()
     .split(/\s+/)
+    .filter(notEmpty)
 
   if (!choices.length) {
     return

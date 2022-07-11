@@ -17,6 +17,11 @@ const poll: (message: Message) => Promise<void> = async message => {
     return
   }
 
+  if (choices.length > choiceEmojis.length) {
+    message.channel.send(':x: 選項數量過多')
+    return
+  }
+
   const responseMessage = await message.channel.send({
     content: `:bar_chart: ${question}`,
     embeds: [

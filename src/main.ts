@@ -15,7 +15,7 @@ import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
 
 const client = new Client({
-  intents: (1 << 12) - 1,
+  intents: ['GUILDS', 'GUILD_MESSAGES', 'DIRECT_MESSAGES'],
 })
 
 client.on('messageCreate', async message => {
@@ -24,23 +24,26 @@ client.on('messageCreate', async message => {
   }
 
   try {
-    if (new RegExp(`<@!{0,1}${message.client.user?.id}>`).test(message.content)) {
-      await luck(message)
-    } else if (/^(roll|r)(\(\d+\))?:/i.test(message.content)) {
+    if (/^(roll|r)(\(\d+\))?:.+/i.test(message.content)) {
       // Roll(Number): Expression
       await rollDice(message)
-    } else if (/^(poll):/i.test(message.content) && /\n/.test(message.content)) {
-      // Poll: Question\nChoice 1\nChoice 2
-      await poll(message)
-    } else if (/^(pick|p):/i.test(message.content)) {
-      // Pick: Choice1 Choice2
-      await pick(message)
-    } else if (/^(help|h):/i.test(message.content)) {
-      // Help: Command
-      await help(message)
     } else if (/^(trace|t):/i.test(message.content)) {
       // Trace: Message Search
       await trace(message)
+    } else if (/^(pick|p):.+/i.test(message.content)) {
+      // Pick: Choice1 Choice2
+      await pick(message)
+    } else if (/^(poll):.+/i.test(message.content) && /\n/.test(message.content)) {
+      // Poll: Question\nChoice 1\nChoice 2
+      await poll(message)
+    } else if (/^(help|h):/i.test(message.content)) {
+      // Help: Command
+      await help(message)
+    } else if (
+      /^luck:/i.test(message.content) ||
+      new RegExp(`<@!{0,1}${message.client.user?.id}>`).test(message.content)
+    ) {
+      await luck(message)
     }
   } catch (error) {
     message.channel.send(':fire: 好像發生了點問題')
