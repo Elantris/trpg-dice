@@ -122,12 +122,12 @@ const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.
 const getParameters: (expression: string) => number[] = expression =>
   expression.split(/[a-z]+/gi).map(v => parseInt(v) || 1)
 
-const rollDice: (message: Message) => Promise<void> = async message => {
+const rollDice: (message: Message<true>) => Promise<void> = async message => {
   const times = /^(roll|r)(\(\d+\)):.+$/gi.test(message.content)
     ? parseInt(message.content.match(/\(\d+/g)?.[0].slice(1) || '1')
     : 1
   if (!Number.isSafeInteger(times) || times < 1 || times > 20) {
-    message.channel.send(':x: 重複次數限 1 ~ 20 次')
+    await message.channel.send(':x: 重複次數限 1 ~ 20 次')
     return
   }
 
@@ -139,12 +139,12 @@ const rollDice: (message: Message) => Promise<void> = async message => {
     return
   }
   if (expression.length > 50) {
-    message.channel.send(':x: 算式長度限 50 字元')
+    await message.channel.send(':x: 算式長度限 50 字元')
     return
   }
   EXPRESSION_REGEXP.lastIndex = 0
   if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
-    message.channel.send(':x: 算式語法錯誤')
+    await message.channel.send(':x: 算式語法錯誤')
     return
   }
 
@@ -174,7 +174,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
       })
       .filter(notEmpty) || []
   if (diceExpressions.length > 10) {
-    message.channel.send(':x: 算式裡的骰子語法最多 5 個')
+    await message.channel.send(':x: 算式裡的骰子語法最多 5 個')
     return
   }
 
@@ -212,7 +212,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
       {
         color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
         author: {
-          iconURL: message.author.displayAvatarURL(),
+          icon_url: message.author.displayAvatarURL(),
           name: message.author.tag,
         },
         description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES'
@@ -240,7 +240,7 @@ const rollDice: (message: Message) => Promise<void> = async message => {
                   )
                   .join('\n'),
               })),
-        timestamp: message.createdAt,
+        timestamp: message.createdAt.toISOString(),
         footer: {
           text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
         },
@@ -248,7 +248,9 @@ const rollDice: (message: Message) => Promise<void> = async message => {
     ],
   })
 
-  logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
+  if (logMessage) {
+    await database.ref(`/logs/${message.guildId}/${responseMessage.id}`).set(logMessage.id)
+  }
 }
 
 export default rollDice

@@ -1,7 +1,7 @@
 import { Message } from 'discord.js'
 import { channels, database } from '../utils/cache'
 
-const trace: (message: Message) => Promise<void> = async message => {
+const trace: (message: Message<true>) => Promise<void> = async message => {
   const search = message.reference?.messageId || message.content.replace(/^(trace|t):/i, '').trim()
 
   let targetMessageId = ''
@@ -17,11 +17,11 @@ const trace: (message: Message) => Promise<void> = async message => {
     // message id
     targetMessageId = search
   } else {
-    message.channel.send(':x: syntax error')
+    await message.channel.send(':x: syntax error')
     return
   }
 
-  const logMessageId = (await database.ref(`/logs/${targetMessageId}`).once('value')).val()
+  const logMessageId = (await database.ref(`/logs/${message.guildId}/${targetMessageId}`).once('value')).val()
   if (!logMessageId) {
     await message.channel.send(':x: `MESSAGE_ID` 沒有擲骰紀錄'.replace('MESSAGE_ID', targetMessageId))
     return

@@ -1,9 +1,9 @@
-import { Message, MessageEmbedOptions } from 'discord.js'
+import { APIEmbed, Message } from 'discord.js'
 import OpenColor from 'open-color'
 import colorFormatter from '../utils/colorFormatter'
 
 const MANUALS: {
-  [key in string]?: MessageEmbedOptions
+  [key in string]?: APIEmbed
 } = {
   default: {
     color: colorFormatter(OpenColor.indigo[5]),

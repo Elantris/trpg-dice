@@ -4,7 +4,7 @@ import { channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
-const pick: (message: Message) => Promise<void> = async message => {
+const pick: (message: Message<true>) => Promise<void> = async message => {
   const choices = message.content
     .replace(/^(pick|p):/i, '')
     .trim()
@@ -23,7 +23,7 @@ const pick: (message: Message) => Promise<void> = async message => {
       {
         color: colorFormatter(OpenColor.cyan[5]),
         author: {
-          iconURL: message.author.displayAvatarURL(),
+          icon_url: message.author.displayAvatarURL(),
           name: message.author.tag,
         },
         description: 'Message: [Link](MESSAGE_LINK)\nChoices: COUNT'
@@ -41,7 +41,7 @@ const pick: (message: Message) => Promise<void> = async message => {
             inline: true,
           },
         ],
-        timestamp: message.createdAt,
+        timestamp: message.createdAt.toISOString(),
         footer: {
           text: `${responseMessage.createdTimestamp - message.createdTimestamp}ms`,
         },
@@ -49,7 +49,9 @@ const pick: (message: Message) => Promise<void> = async message => {
     ],
   })
 
-  logMessage && database.ref(`/logs/${responseMessage.id}`).set(logMessage.id)
+  if (logMessage) {
+    await database.ref(`/logs/${message.guildId}/${responseMessage.id}`).set(logMessage.id)
+  }
 }
 
 export default pick

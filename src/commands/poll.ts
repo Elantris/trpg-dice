@@ -6,7 +6,7 @@ const choiceEmojis: string[] = '🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 �
   ' ',
 )
 
-const poll: (message: Message) => Promise<void> = async message => {
+const poll: (message: Message<true>) => Promise<void> = async message => {
   const choices = message.content.split('\n').filter(v => v)
   const question = choices
     .splice(0, 1)[0]
@@ -18,7 +18,7 @@ const poll: (message: Message) => Promise<void> = async message => {
   }
 
   if (choices.length > choiceEmojis.length) {
-    message.channel.send(':x: 選項數量過多')
+    await message.channel.send(':x: 選項數量過多')
     return
   }
 
@@ -28,8 +28,8 @@ const poll: (message: Message) => Promise<void> = async message => {
       {
         color: colorFormatter(OpenColor.blue[5]),
         author: {
+          icon_url: message.author.displayAvatarURL(),
           name: message.author.tag,
-          iconURL: message.author.displayAvatarURL(),
         },
         description: choices.map((choice, index) => `${choiceEmojis[index]} ${choice}`).join('\n'),
       },

@@ -12,7 +12,7 @@ const template = `
 開發群組：https://discord.gg/Ctwz4BB
 `.trim()
 
-const luck: (message: Message) => Promise<void> = async message => {
+const luck: (message: Message<true>) => Promise<void> = async message => {
   const todayDate = timeFormatter({ format: 'yyyy-MM-dd' })
   if (!luckyNumbers[todayDate]) {
     const luckyNumber = (await database.ref(`/luckyNumbers/${todayDate}`).once('value')).val() || randomInt(1, 100)

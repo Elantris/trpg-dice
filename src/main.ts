@@ -15,11 +15,11 @@ import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
 
 const client = new Client({
-  intents: ['GUILDS', 'GUILD_MESSAGES', 'DIRECT_MESSAGES'],
+  intents: ['Guilds', 'GuildMessages', 'MessageContent'],
 })
 
 client.on('messageCreate', async message => {
-  if (message.author.bot) {
+  if (message.author.bot || !message.inGuild()) {
     return
   }
 
@@ -46,8 +46,8 @@ client.on('messageCreate', async message => {
       await luck(message)
     }
   } catch (error) {
-    message.channel.send(':fire: 好像發生了點問題')
-    channels['logger']?.send({
+    await message.channel.send(':fire: 好像發生了點問題')
+    await channels['logger']?.send({
       content: '`TIME` CONTENT'
         .replace('TIME', timeFormatter({ time: message.createdTimestamp }))
         .replace('CONTENT', message.content),
