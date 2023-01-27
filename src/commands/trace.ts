@@ -23,18 +23,18 @@ const trace: (message: Message<true>) => Promise<void> = async message => {
 
   const logMessageId = (await database.ref(`/logs/${message.guildId}/${targetMessageId}`).once('value')).val()
   if (!logMessageId) {
-    await message.channel.send(':x: `MESSAGE_ID` 沒有擲骰紀錄'.replace('MESSAGE_ID', targetMessageId))
+    await message.channel.send(`:x: \`${targetMessageId}\` 沒有擲骰紀錄`)
     return
   }
 
   const logMessage = await channels['logger']?.messages.fetch(logMessageId).catch(() => null)
   if (!logMessage) {
-    await message.channel.send(':question: `MESSAGE_ID` 記錄遺失了'.replace('MESSAGE_ID', logMessageId))
+    await message.channel.send(`:question: \`${logMessageId}\` 記錄遺失了`)
     return
   }
 
   await message.channel.send({
-    content: ':mag_right: `MESSAGE_ID`'.replace('MESSAGE_ID', targetMessageId),
+    content: `:mag_right: \`${targetMessageId}\``,
     embeds: logMessage.embeds,
   })
 }

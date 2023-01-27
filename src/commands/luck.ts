@@ -7,7 +7,7 @@ const luckyNumbers: { [Date in string]?: number } = {}
 
 const template = `
 :game_die: eeDice 擲骰機器人
-今天 \`TODAY_DATE\` 的幸運數字是 **LUCKY_NUMBER**
+今天 \`{TODAY_DATE}\` 的幸運數字是 **{LUCKY_NUMBER}**
 說明文件：<https://hackmd.io/@eelayntris/eedice>
 開發群組：https://discord.gg/Ctwz4BB
 `.trim()
@@ -21,7 +21,7 @@ const luck: (message: Message<true>) => Promise<void> = async message => {
   }
 
   await message.channel.send(
-    template.replace('TODAY_DATE', todayDate).replace('LUCKY_NUMBER', `${luckyNumbers[todayDate]}`),
+    template.replace('{TODAY_DATE}', todayDate).replace('{LUCKY_NUMBER}', `${luckyNumbers[todayDate]}`),
   )
 }
 

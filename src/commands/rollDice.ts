@@ -174,7 +174,7 @@ const rollDice: (message: Message<true>) => Promise<void> = async message => {
       })
       .filter(notEmpty) || []
   if (diceExpressions.length > 10) {
-    await message.channel.send(':x: 算式裡的骰子語法最多 5 個')
+    await message.channel.send(':x: 算式裡的骰子語法最多 10 個')
     return
   }
 
@@ -197,16 +197,18 @@ const rollDice: (message: Message<true>) => Promise<void> = async message => {
 
       commandResults.push(rollResults)
       responseContents.push(
-        ':game_die: `RESULT_EXPRESSION` = **VALUE**'
-          .replace('RESULT_EXPRESSION', resultExpression)
-          .replace('VALUE', `${eval(resultExpression)}`),
+        ':game_die: `{RESULT_EXPRESSION}` = **{VALUE}**'
+          .replace('{RESULT_EXPRESSION}', resultExpression)
+          .replace('{VALUE}', `${eval(resultExpression)}`),
       )
     }
   } catch (error: any) {
     commandError = error
   }
 
-  const responseMessage = await message.channel.send(commandError ? ':x: 語法參數錯誤' : responseContents.join('\n'))
+  const responseMessage = await message.channel.send(
+    commandError ? `:x: 語法參數錯誤，查看詳細原因：\`t: ${message.id}\`` : responseContents.join('\n'),
+  )
   const logMessage = await channels['logger']?.send({
     embeds: [
       {
@@ -215,15 +217,15 @@ const rollDice: (message: Message<true>) => Promise<void> = async message => {
           icon_url: message.author.displayAvatarURL(),
           name: message.author.tag,
         },
-        description: 'Message: [Link](MESSAGE_LINK)\nExpression: `EXPRESSION`\nTimes: TIMES'
-          .replace('MESSAGE_LINK', responseMessage.url)
+        description: 'Message: [Link]({MESSAGE_LINK})\nExpression: `{EXPRESSION}`\nTimes: {TIMES}'
+          .replace('{MESSAGE_LINK}', responseMessage.url)
           .replace('EXPRESSION', expression)
-          .replace('TIMES', `${times}`),
+          .replace('{TIMES}', `${times}`),
         fields: commandError
           ? [
               {
                 name: 'Error',
-                value: '```ERROR```'.replace('ERROR', `${commandError}`),
+                value: `\`\`\`${commandError}\`\`\``,
               },
             ]
           : commandResults
@@ -232,11 +234,11 @@ const rollDice: (message: Message<true>) => Promise<void> = async message => {
                 name: `${index + 1}`,
                 value: rollResults
                   .map((result, index) =>
-                    '`DICE_EXPRESSION` = (METHOD) `DICE_ROLLS` = **VALUE**'
-                      .replace('DICE_EXPRESSION', diceExpressions[index].content)
-                      .replace('METHOD', diceExpressions[index].method)
-                      .replace('DICE_ROLLS', JSON.stringify(result.rolls))
-                      .replace('VALUE', `${result.value}`),
+                    '`{DICE_EXPRESSION}` = ({METHOD}) `{DICE_ROLLS}` = **{VALUE}**'
+                      .replace('{DICE_EXPRESSION}', diceExpressions[index].content)
+                      .replace('{METHOD}', diceExpressions[index].method)
+                      .replace('{DICE_ROLLS}', JSON.stringify(result.rolls))
+                      .replace('{VALUE}', `${result.value}`),
                   )
                   .join('\n'),
               })),

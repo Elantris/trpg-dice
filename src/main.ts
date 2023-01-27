@@ -2,13 +2,14 @@ require('dotenv').config({
   path: `${__dirname}/../${process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'}`,
 })
 
-import { Client, TextChannel } from 'discord.js'
+import { ChannelType, Client } from 'discord.js'
 import OpenColor from 'open-color'
 import help from './commands/help'
 import luck from './commands/luck'
 import pick from './commands/pick'
 import poll from './commands/poll'
 import rollDice from './commands/rollDice'
+import shuffle from './commands/shuffle'
 import trace from './commands/trace'
 import { channels } from './utils/cache'
 import colorFormatter from './utils/colorFormatter'
@@ -36,7 +37,10 @@ client.on('messageCreate', async message => {
     } else if (/^(poll):.+/i.test(message.content) && /\n/.test(message.content)) {
       // Poll: Question\nChoice 1\nChoice 2
       await poll(message)
-    } else if (/^(help|h):/i.test(message.content)) {
+    } else if (/^(shuffle|s):.+/i.test(message.content)) {
+      // Shuffle: Element1 Element2
+      await shuffle(message)
+    } else if (/^(help|h): me/i.test(message.content)) {
       // Help: Command
       await help(message)
     } else if (
@@ -46,29 +50,27 @@ client.on('messageCreate', async message => {
       await luck(message)
     }
   } catch (error) {
-    await message.channel.send(':fire: 好像發生了點問題')
+    await message.channel.send(`:fire: 好像發生了點問題，查看詳細原因：\`t: ${message.id}\``)
     await channels['logger']?.send({
-      content: '`TIME` CONTENT'
-        .replace('TIME', timeFormatter({ time: message.createdTimestamp }))
-        .replace('CONTENT', message.content),
+      content: `\`${timeFormatter({ time: message.createdTimestamp })}\` ${message.content}`,
       embeds: [
         {
           color: colorFormatter(OpenColor.red[5]),
-          description: '```ERROR```'.replace('ERROR', `${error}`),
+          description: `\`\`\`${error}\`\`\``,
         },
       ],
     })
   }
 })
 
-client.on('ready', async () => {
+client.on('ready', async client => {
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
-  if (loggerChannel instanceof TextChannel) {
+  if (loggerChannel?.type === ChannelType.GuildText) {
     channels['logger'] = loggerChannel
   }
 
   setInterval(() => {
-    client.user?.setActivity('help: default')
+    client.user.setActivity('help: me')
   }, 60000)
 })
 

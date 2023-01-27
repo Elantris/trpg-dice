@@ -11,13 +11,13 @@ const pick: (message: Message<true>) => Promise<void> = async message => {
     .split(/\s+/)
     .filter(notEmpty)
 
-  if (!choices.length) {
+  if (choices.length < 2) {
     return
   }
 
-  const pickedChoice = choices[Math.floor(Math.random() * choices.length)]
+  const pickedIndex = Math.floor(Math.random() * choices.length)
 
-  const responseMessage = await message.channel.send(pickedChoice)
+  const responseMessage = await message.channel.send(choices[pickedIndex])
   const logMessage = await channels['logger']?.send({
     embeds: [
       {
@@ -26,9 +26,9 @@ const pick: (message: Message<true>) => Promise<void> = async message => {
           icon_url: message.author.displayAvatarURL(),
           name: message.author.tag,
         },
-        description: 'Message: [Link](MESSAGE_LINK)\nChoices: COUNT'
-          .replace('MESSAGE_LINK', message.url)
-          .replace('COUNT', `${choices.length}`),
+        description: 'Message: [Link]({MESSAGE_LINK})\nChoices: {COUNT}'
+          .replace('{MESSAGE_LINK}', message.url)
+          .replace('{COUNT}', `${choices.length}`),
         fields: [
           {
             name: 'Choices',
@@ -37,7 +37,7 @@ const pick: (message: Message<true>) => Promise<void> = async message => {
           },
           {
             name: 'Picked',
-            value: pickedChoice,
+            value: `${pickedIndex + 1}. ${choices[pickedIndex]}`,
             inline: true,
           },
         ],

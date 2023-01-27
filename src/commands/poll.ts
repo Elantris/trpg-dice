@@ -13,12 +13,16 @@ const poll: (message: Message<true>) => Promise<void> = async message => {
     .replace(/^(poll):/i, '')
     .trim()
 
-  if (!choices.length) {
+  if (choices.length < 2) {
+    return
+  }
+  if (choices.length > choiceEmojis.length) {
+    await message.channel.send(':x: 選項數量過多')
     return
   }
 
-  if (choices.length > choiceEmojis.length) {
-    await message.channel.send(':x: 選項數量過多')
+  if (!message.guild.members.cache.get(message.client.user.id)?.permissionsIn(message.channel).has('AddReactions')) {
+    await message.channel.send(':lock: 機器人需要「加入反應」的權限')
     return
   }
 
@@ -40,7 +44,9 @@ const poll: (message: Message<true>) => Promise<void> = async message => {
     await responseMessage.react(choiceEmojis[i])
   }
 
-  await message.delete()
+  try {
+    await message.delete()
+  } catch {}
 }
 
 export default poll
