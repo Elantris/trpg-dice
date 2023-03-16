@@ -1,42 +1,67 @@
-import { Message } from 'discord.js'
-import { channels, database } from '../utils/cache'
+import { ApplicationCommandType, ContextMenuCommandBuilder, Message, SlashCommandBuilder } from 'discord.js'
+import { channels, CommandProps, database } from '../utils/cache'
 
-const trace: (message: Message<true>) => Promise<void> = async message => {
-  const search = message.reference?.messageId || message.content.replace(/^(trace|t):/i, '').trim()
+const data = [
+  new SlashCommandBuilder()
+    .setName('trace')
+    .setDescription('查看一則指令結果的詳細資訊')
+    .addStringOption(option => option.setName('target').setDescription('訊息的連結或 ID').setRequired(true)),
+  new ContextMenuCommandBuilder().setName('trace').setType(ApplicationCommandType.Message),
+]
 
-  let targetMessageId = ''
-  if (/^https:\/\/\S*\/channels\/\d+\/\d+\/\d+$/.test(search)) {
-    // full message link
-    const [messageId] = search.split('/').slice(-1)
-    targetMessageId = messageId
-  } else if (/^\d+\-\d+$/.test(search)) {
-    // channel id - message id
-    const [, messageId] = search.split('-')
-    targetMessageId = messageId
-  } else if (/^\d+$/.test(search)) {
-    // message id
-    targetMessageId = search
+const execute: CommandProps = async request => {
+  const options: {
+    search: string
+    targetMessageId: string
+  } = {
+    search: '',
+    targetMessageId: '',
+  }
+  if (request instanceof Message) {
+    options.search = request.reference?.messageId || request.content.replace(/^(trace|t):/i, '').trim()
+  } else if (request.isChatInputCommand()) {
+    options.search = request.options.getString('target', true)
+  } else if (request.isMessageContextMenuCommand()) {
+    options.search = request.targetMessage.url
   } else {
-    await message.channel.send(':x: syntax error')
     return
   }
 
-  const logMessageId = (await database.ref(`/logs/${message.guildId}/${targetMessageId}`).once('value')).val()
+  if (/^https:\/\/\S*\/channels\/\d+\/\d+\/\d+$/.test(options.search)) {
+    // full message link
+    const [messageId] = options.search.split('/').slice(-1)
+    options.targetMessageId = messageId
+  } else if (/^\d+\-\d+$/.test(options.search)) {
+    // channel id - message id
+    const [, messageId] = options.search.split('-')
+    options.targetMessageId = messageId
+  } else if (/^\d+$/.test(options.search)) {
+    // message id
+    options.targetMessageId = options.search
+  } else {
+    await request.reply(':x: 找不到訊息')
+    return
+  }
+
+  const logMessageId = (await database.ref(`/logs/${request.guildId}/${options.targetMessageId}`).once('value')).val()
   if (!logMessageId) {
-    await message.channel.send(`:x: \`${targetMessageId}\` 沒有擲骰紀錄`)
+    await request.reply(`:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`)
     return
   }
 
   const logMessage = await channels['logger']?.messages.fetch(logMessageId).catch(() => null)
   if (!logMessage) {
-    await message.channel.send(`:question: \`${logMessageId}\` 記錄遺失了`)
+    await request.reply(`:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`)
     return
   }
 
-  await message.channel.send({
-    content: `:mag_right: \`${targetMessageId}\``,
+  await request.reply({
+    content: `:mag_right: \`${options.targetMessageId}\``,
     embeds: logMessage.embeds,
   })
 }
 
-export default trace
+export default {
+  data,
+  execute,
+}

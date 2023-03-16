@@ -9,7 +9,7 @@
     "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000 && pm2 monit",
     "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit",
     "dev": "NODE_ENV=development ts-node src/main.ts",
-    "push": "rsync -r build package.json pnpm-lock.yaml .env elantris@embpr:/Users/elantris/Project/trpg-dice"
+    "push": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@embpr:/Users/elantris/Project/trpg-dice"
   },
   "repository": {
     "type": "git",
@@ -25,15 +25,16 @@
   "dependencies": {
     "@firebase/app-types": "^0.9.0",
     "@types/luxon": "^3.2.0",
-    "@types/node": "^18.11.18",
-    "@types/ramda": "^0.28.22",
+    "@types/node": "^18.15.3",
+    "@types/ramda": "^0.28.23",
     "@types/ws": "^8.5.4",
-    "discord.js": "^14.7.1",
+    "axios": "^1.3.4",
+    "discord.js": "^14.8.0",
     "dotenv": "^16.0.3",
     "firebase-admin": "^11.5.0",
-    "luxon": "^3.2.1",
+    "luxon": "^3.3.0",
     "open-color": "^1.9.1",
     "ramda": "^0.28.0",
-    "typescript": "^4.9.4"
+    "typescript": "^5.0.2"
   }
 }
