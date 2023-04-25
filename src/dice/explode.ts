@@ -4,10 +4,10 @@ import randomInt from './randomInt'
 
 const explode: (times: number, sides: number) => RollResult = (times, sides) => {
   if (times > 20) {
-    throw new Error('times should be 1 ~ 20')
+    throw new Error('INVALID_TIMES')
   }
   if (sides < 1 || sides > 100) {
-    throw new Error('sides should be 1 ~ 100')
+    throw new Error('INVALID_SIDES')
   }
 
   const rolls: number[] = []

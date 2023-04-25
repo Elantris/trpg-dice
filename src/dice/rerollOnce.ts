@@ -9,7 +9,7 @@ const rerollOnce: (times: number, sides: number, minimum: number, chooseHigher?:
   chooseHigher = false,
 ) => {
   if (minimum > sides) {
-    throw new Error('invalid minimum')
+    throw new Error('INVALID_DICE_EXPRESSION')
   }
 
   const rolls: number[] = []

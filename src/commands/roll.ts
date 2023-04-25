@@ -36,23 +36,35 @@ const execute: CommandProps = async request => {
   }
 
   if (!Number.isSafeInteger(options.repeat) || options.repeat < 1 || options.repeat > 10) {
-    await request.reply(`:x: ${ERROR_DESCRIPTIONS['INVALID_REPEAT']}`)
+    await request.reply({
+      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_REPEAT']}`,
+      ephemeral: true,
+    })
     return
   }
 
   if (!options.expression) {
-    await request.reply(`:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`)
+    await request.reply({
+      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`,
+      ephemeral: true,
+    })
     return
   }
 
   if (options.expression.length > 50) {
-    await request.reply(`:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION_LENGTH']}`)
+    await request.reply({
+      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION_LENGTH']}`,
+      ephemeral: true,
+    })
     return
   }
 
   EXPRESSION_REGEXP.lastIndex = 0
   if (!EXPRESSION_REGEXP.test(options.expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
-    await request.reply(`:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`)
+    await request.reply({
+      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`,
+      ephemeral: true,
+    })
     return
   }
 
@@ -85,8 +97,9 @@ const execute: CommandProps = async request => {
 
   const responseMessage = await request.reply({
     content: commandError
-      ? `:x: ${ERROR_DESCRIPTIONS[commandError.name] || ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`
+      ? `:x: ${ERROR_DESCRIPTIONS[commandError.message] || ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`
       : responseContents.join('\n'),
+    ephemeral: !!commandError,
     fetchReply: true,
   })
   const logMessage = await channels['logger']?.send({

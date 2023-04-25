@@ -4,7 +4,7 @@ import randomInt from './randomInt'
 
 const reroll: (times: number, sides: number, minimum: number) => RollResult = (times, sides, minimum) => {
   if (minimum > sides) {
-    throw new Error('invalid minimum')
+    throw new Error('INVALID_DICE_EXPRESSION')
   }
 
   const rolls: number[] = []

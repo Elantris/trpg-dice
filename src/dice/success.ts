@@ -3,7 +3,7 @@ import roll from './roll'
 
 const success: (times: number, sides: number, target: number) => RollResult = (times, sides, target) => {
   if (target >= sides) {
-    throw new Error('invalid target')
+    throw new Error('INVALID_DICE_EXPRESSION')
   }
 
   const { rolls } = roll(times, sides)

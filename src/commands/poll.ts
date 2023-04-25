@@ -38,16 +38,25 @@ const execute: CommandProps = async request => {
   }
 
   if (options.choices.length < 2) {
-    await request.reply(':x: 投票選項需要至少兩個')
+    await request.reply({
+      content: ':x: 投票選項需要至少兩個',
+      ephemeral: true,
+    })
     return
   }
   if (options.choices.length > choiceEmojis.length) {
-    await request.reply(':x: 選項數量過多')
+    await request.reply({
+      content: ':x: 選項數量過多',
+      ephemeral: true,
+    })
     return
   }
 
   if (!request.guild?.members.cache.get(request.client.user.id)?.permissionsIn(request.channelId).has('AddReactions')) {
-    await request.reply(':lock: 機器人需要「加入反應」的權限')
+    await request.reply({
+      content: ':lock: 機器人需要「加入反應」的權限',
+      ephemeral: true,
+    })
     return
   }
 

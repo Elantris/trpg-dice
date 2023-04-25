@@ -24,17 +24,17 @@ const execute: CommandProps = async request => {
       .trim()
       .split(/\s+/)
       .filter(notEmpty)
-
-    if (options.choices.length < 2) {
-      return
-    }
   } else if (request.isChatInputCommand()) {
     options.choices = request.options.getString('choices', true).trim().split(/\s+/).filter(notEmpty)
-    if (options.choices.length < 2) {
-      await request.reply(':x: 抽選選項需要至少兩個')
-      return
-    }
   } else {
+    return
+  }
+
+  if (options.choices.length < 2) {
+    await request.reply({
+      content: ':x: 抽選選項需要至少兩個',
+      ephemeral: true,
+    })
     return
   }
 
@@ -58,7 +58,7 @@ const execute: CommandProps = async request => {
                 icon_url: request.user.displayAvatarURL(),
                 name: request.user.tag,
               },
-        description: `Message: [Link]({${responseMessage.url}})\nChoices: ${options.choices.length}`,
+        description: `Message: [Link](${responseMessage.url})\nChoices: ${options.choices.length}`,
         fields: [
           {
             name: 'Choices',

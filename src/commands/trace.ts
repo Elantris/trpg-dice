@@ -39,19 +39,28 @@ const execute: CommandProps = async request => {
     // message id
     options.targetMessageId = options.search
   } else {
-    await request.reply(':x: 找不到訊息')
+    await request.reply({
+      content: ':x: 找不到訊息',
+      ephemeral: true,
+    })
     return
   }
 
   const logMessageId = (await database.ref(`/logs/${request.guildId}/${options.targetMessageId}`).once('value')).val()
   if (!logMessageId) {
-    await request.reply(`:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`)
+    await request.reply({
+      content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,
+      ephemeral: true,
+    })
     return
   }
 
   const logMessage = await channels['logger']?.messages.fetch(logMessageId).catch(() => null)
   if (!logMessage) {
-    await request.reply(`:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`)
+    await request.reply({
+      content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,
+      ephemeral: true,
+    })
     return
   }
 
