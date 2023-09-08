@@ -1,5 +1,5 @@
-import { ApplicationCommandType, ContextMenuCommandBuilder, Message, SlashCommandBuilder } from 'discord.js'
-import { channels, CommandProps, database } from '../utils/cache'
+import { ApplicationCommandType, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js'
+import { CommandProps, channels, database } from '../utils/cache'
 
 const data = [
   new SlashCommandBuilder()
@@ -17,9 +17,8 @@ const execute: CommandProps = async request => {
     search: '',
     targetMessageId: '',
   }
-  if (request instanceof Message) {
-    options.search = request.reference?.messageId || request.content.replace(/^(trace|t):/i, '').trim()
-  } else if (request.isChatInputCommand()) {
+
+  if (request.isChatInputCommand()) {
     options.search = request.options.getString('target', true)
   } else if (request.isMessageContextMenuCommand()) {
     options.search = request.targetMessage.url

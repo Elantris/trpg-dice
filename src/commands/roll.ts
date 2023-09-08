@@ -1,6 +1,6 @@
-import { Embed, Message, SlashCommandBuilder } from 'discord.js'
+import { Embed, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { channels, CommandProps, database, ERROR_DESCRIPTIONS, EXPRESSION_REGEXP } from '../utils/cache'
+import { CommandProps, ERROR_DESCRIPTIONS, EXPRESSION_REGEXP, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import rollDice from '../utils/rollDice'
 
@@ -10,9 +10,12 @@ const data = [
     .setDescription('計算一個四則運算的算式，並將其中的骰子語法替換成擲骰結果')
     .addStringOption(option => option.setName('expression').setDescription('包含骰子語法的算式').setRequired(true))
     .addIntegerOption(option => option.setName('repeat').setDescription('重複次數')),
+  new SlashCommandBuilder().setName('d6').setDescription('丟擲一顆 6 面骰，並顯示結果'),
+  new SlashCommandBuilder().setName('d20').setDescription('丟擲一顆 20 面骰，並顯示結果'),
+  new SlashCommandBuilder().setName('d100').setDescription('丟擲一顆 100 面骰，並顯示結果'),
 ]
 
-const execute: CommandProps = async request => {
+const execute: CommandProps = async (request, override) => {
   const options: {
     expression: string
     repeat: number
@@ -20,17 +23,11 @@ const execute: CommandProps = async request => {
     expression: '',
     repeat: 0,
   }
-  if (request instanceof Message) {
-    options.repeat = /^(roll|r)(\(\d+\)):.+$/gi.test(request.content)
-      ? parseInt(request.content.match(/\(\d+/g)?.[0].slice(1) || '1')
-      : 1
-    options.expression = request.content
-      .slice(request.content.indexOf(':') + 1)
-      .replace(/\s+/g, '')
-      .trim()
-  } else if (request.isChatInputCommand()) {
-    options.repeat = request.options.getInteger('repeat') ?? 1
-    options.expression = request.options.getString('expression', true).replace(/\s+/g, '').trim()
+
+  if (request.isChatInputCommand()) {
+    options.repeat = override?.['repeat'] ?? request.options.getInteger('repeat') ?? 1
+    options.expression =
+      override?.['expression'] ?? request.options.getString('expression', true).replace(/\s+/g, '').trim()
   } else {
     return
   }
@@ -77,17 +74,19 @@ const execute: CommandProps = async request => {
     rollResults.forEach((rollResult, i) => {
       let resultExpression = options.expression
 
-      logFields.push({
-        name: `${i + 1}`,
-        value: diceExpressions
-          .map(({ content, method }, j) => {
-            resultExpression = resultExpression.replace(content, `${rollResult[j].value}`)
-            return `\`${content}\` = (${method}) \`${JSON.stringify(rollResult[j].rolls)}\` = **${
-              rollResult[j].value
-            }**`
-          })
-          .join('\n'),
-      })
+      if (diceExpressions.length) {
+        logFields.push({
+          name: `${i + 1}`,
+          value: diceExpressions
+            .map(({ content, method }, j) => {
+              resultExpression = resultExpression.replace(content, `${rollResult[j].value}`)
+              return `\`${content}\` = (${method}) \`${JSON.stringify(rollResult[j].rolls)}\` = **${
+                rollResult[j].value
+              }**`
+            })
+            .join('\n'),
+        })
+      }
 
       responseContents.push(`:game_die: \`${resultExpression}\` = **${eval(resultExpression)}**`)
     })
@@ -106,16 +105,10 @@ const execute: CommandProps = async request => {
     embeds: [
       {
         color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
-        author:
-          request instanceof Message
-            ? {
-                icon_url: request.author.displayAvatarURL(),
-                name: request.author.tag,
-              }
-            : {
-                icon_url: request.user.displayAvatarURL(),
-                name: request.user.tag,
-              },
+        author: {
+          icon_url: request.user.displayAvatarURL(),
+          name: request.user.tag,
+        },
         description: 'Message: [Link]({MESSAGE_LINK})\nExpression: `{EXPRESSION}`\nTimes: {REPEAT}'
           .replace('{MESSAGE_LINK}', responseMessage.url)
           .replace('{EXPRESSION}', options.expression)
@@ -136,7 +129,7 @@ const execute: CommandProps = async request => {
     ],
   })
 
-  if (logMessage && (logMessage.embeds?.[0]?.fields.length || 0) > 0) {
+  if (logMessage && logMessage.embeds?.[0]?.fields?.length) {
     await database.ref(`/logs/${request.guildId}/${responseMessage.id}`).set(logMessage.id)
   }
 }

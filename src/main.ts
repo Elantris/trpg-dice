@@ -2,93 +2,51 @@ require('dotenv').config({
   path: `${__dirname}/../${process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'}`,
 })
 
-import {
-  ChannelType,
-  Client,
-  Events,
-  Interaction,
-  Message,
-  REST,
-  RESTPostAPIApplicationCommandsJSONBody,
-  Routes,
-} from 'discord.js'
+import { ChannelType, Client, Events, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js'
 import { readdirSync } from 'fs'
 import OpenColor from 'open-color'
 import { join } from 'path'
-import { channels } from './utils/cache'
+import { CommandProps, channels, database } from './utils/cache'
 import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
 
 const client = new Client({
-  intents: ['Guilds', 'GuildMessages', 'MessageContent'],
+  intents: ['Guilds'],
 })
 
 // load commands
 const commandBuilds: RESTPostAPIApplicationCommandsJSONBody[] = []
-type CommandProps = {
+type ApplicationCommandProps = {
   data: RESTPostAPIApplicationCommandsJSONBody[]
-  execute: (request: Message<true> | Interaction) => Promise<void>
+  execute: CommandProps
 }
-const commands: { [CommandName in string]?: CommandProps['execute'] } = {}
+const commands: { [CommandName in string]?: ApplicationCommandProps['execute'] } = {}
 
 readdirSync(join(__dirname, './commands')).forEach(async filename => {
   if (!filename.endsWith('.js') && !filename.endsWith('.ts')) {
     return
   }
   const commandName = filename.split('.')[0]
-  const { default: command }: { default: CommandProps } = await import(join(__dirname, './commands', filename))
+  const { default: command }: { default: ApplicationCommandProps } = await import(
+    join(__dirname, './commands', filename)
+  )
   commands[commandName] = command.execute
   commandBuilds.push(...command.data)
 })
 
 // handle command
-client.on(Events.MessageCreate, async message => {
-  if (message.author.bot || !message.inGuild()) {
-    return
-  }
-
-  try {
-    if (/^(roll|r)(\(\d+\))?:.+/i.test(message.content)) {
-      // Roll(Number): Expression
-      await commands['roll']?.(message)
-    } else if (/^(trace|t):/i.test(message.content)) {
-      // Trace: Message Search
-      await commands['trace']?.(message)
-    } else if (/^(pick|p):.+/i.test(message.content)) {
-      // Pick: Choice1 Choice2
-      await commands['pick']?.(message)
-    } else if (/^(poll):.+/i.test(message.content) && /\n/.test(message.content)) {
-      // Poll: Question\nChoice 1\nChoice 2
-      await commands['poll']?.(message)
-    } else if (/^(shuffle|s):.+/i.test(message.content)) {
-      // Shuffle: Element1 Element2
-      await commands['shuffle']?.(message)
-    } else if (/^(help|h): me/i.test(message.content)) {
-      // Help: Command
-      await commands['help']?.(message)
-    }
-  } catch (error: any) {
-    await message
-      .reply(`:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`)
-      .catch(() => {})
-    await channels['logger']
-      ?.send({
-        content: `\`${timeFormatter({ time: message.createdTimestamp })}\` ${message.content}`,
-        embeds: [
-          {
-            color: colorFormatter(OpenColor.red[5]),
-            description: `\`\`\`${error.stack}\`\`\``,
-          },
-        ],
-      })
-      .catch(() => {})
-  }
-})
-
 client.on(Events.InteractionCreate, async interaction => {
   if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
     try {
-      await commands[interaction.commandName]?.(interaction)
+      let commandName = interaction.commandName
+      let override: any = undefined
+      if (interaction.commandName === 'd6' || interaction.commandName === 'd20' || interaction.commandName === 'd100') {
+        commandName = 'roll'
+        override = {
+          expression: interaction.commandName,
+        }
+      }
+      await commands[commandName]?.(interaction, override)
     } catch (error: any) {
       await interaction
         .reply(`:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`)
@@ -115,6 +73,11 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 })
 
+// handle guild delete
+client.on(Events.GuildDelete, async guild => {
+  await database.ref(`/logs/${guild.id}`).remove()
+})
+
 // register commands
 client.on(Events.ClientReady, async client => {
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
@@ -129,7 +92,7 @@ client.on(Events.ClientReady, async client => {
     await rest.put(Routes.applicationCommands(client.user.id), { body: commandBuilds })
   } catch (error) {
     if (error instanceof Error) {
-      await loggerChannel.send(`\`${timeFormatter()}\` Register slash commands error\n\`\`\`${error.stack || ''}\`\`\``)
+      await loggerChannel.send(`\`${timeFormatter()}\` Register slash commands error\n\`\`\`${error.stack}\`\`\``)
     }
   }
 

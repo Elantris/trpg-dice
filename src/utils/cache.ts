@@ -1,4 +1,4 @@
-import { Interaction, Message, TextChannel } from 'discord.js'
+import { Interaction, TextChannel } from 'discord.js'
 import admin from 'firebase-admin'
 
 admin.initializeApp({
@@ -14,7 +14,7 @@ export const database = admin.database()
 
 export const channels: { [key in string]?: TextChannel } = {}
 
-export type CommandProps = (request: Message<true> | Interaction) => Promise<void>
+export type CommandProps = (request: Interaction, override?: Record<string, any>) => Promise<void>
 export type RollResult = {
   value: number
   rolls: number[]

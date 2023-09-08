@@ -1,4 +1,4 @@
-import { Message, SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
 import { CommandProps } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
@@ -24,13 +24,8 @@ const execute: CommandProps = async request => {
     title: '',
     choices: [],
   }
-  if (request instanceof Message) {
-    options.choices = request.content.split('\n').filter(notEmpty)
-    options.title = options.choices
-      .splice(0, 1)[0]
-      .replace(/^(poll):/i, '')
-      .trim()
-  } else if (request.isChatInputCommand()) {
+
+  if (request.isChatInputCommand()) {
     options.title = request.options.getString('title', true)
     options.choices = request.options.getString('choices', true).split(/\s+/).filter(notEmpty)
   } else {
@@ -65,16 +60,10 @@ const execute: CommandProps = async request => {
     embeds: [
       {
         color: colorFormatter(OpenColor.blue[5]),
-        author:
-          request instanceof Message
-            ? {
-                icon_url: request.author.displayAvatarURL(),
-                name: request.author.tag,
-              }
-            : {
-                icon_url: request.user.displayAvatarURL(),
-                name: request.user.tag,
-              },
+        author: {
+          icon_url: request.user.displayAvatarURL(),
+          name: request.user.tag,
+        },
         description: options.choices.map((choice, index) => `${choiceEmojis[index]} ${choice}`).join('\n'),
       },
     ],

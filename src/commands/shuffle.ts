@@ -1,6 +1,6 @@
-import { Interaction, Message, SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { channels, database } from '../utils/cache'
+import { CommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -11,20 +11,14 @@ const data = [
     .addStringOption(option => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true)),
 ]
 
-const execute: (request: Message<true> | Interaction) => Promise<void> = async request => {
+const execute: CommandProps = async request => {
   const options: {
     items: string[]
   } = {
     items: [],
   }
 
-  if (request instanceof Message) {
-    options.items = request.content
-      .replace(/^(shuffle|s):/i, '')
-      .trim()
-      .split(/\s+/)
-      .filter(notEmpty)
-  } else if (request.isChatInputCommand()) {
+  if (request.isChatInputCommand()) {
     options.items = request.options.getString('items', true).split(/\s+/).filter(notEmpty)
   } else {
     return
@@ -53,26 +47,20 @@ const execute: (request: Message<true> | Interaction) => Promise<void> = async r
     embeds: [
       {
         color: colorFormatter(OpenColor.teal[5]),
-        author:
-          request instanceof Message
-            ? {
-                icon_url: request.author.displayAvatarURL(),
-                name: request.author.tag,
-              }
-            : {
-                icon_url: request.user.displayAvatarURL(),
-                name: request.user.tag,
-              },
+        author: {
+          icon_url: request.user.displayAvatarURL(),
+          name: request.user.tag,
+        },
         description: `Message: [Link](${responseMessage.url})\nCount: ${options.items.length}`,
         fields: [
           {
             name: 'Input',
-            value: options.items.map((element, index) => `${index + 1}. ${element}`).join('\n'),
+            value: options.items.map((element, index) => `\`${index + 1}.\` ${element}`).join('\n'),
             inline: true,
           },
           {
             name: 'Result',
-            value: orders.map(order => `${order + 1}. ${options.items[order]}`).join('\n'),
+            value: orders.map(order => `\`${order + 1}.\` ${options.items[order]}`).join('\n'),
             inline: true,
           },
         ],

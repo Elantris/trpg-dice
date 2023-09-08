@@ -1,6 +1,6 @@
 import { Message, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { channels, CommandProps, database } from '../utils/cache'
+import { CommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -8,7 +8,7 @@ const data = [
   new SlashCommandBuilder()
     .setName('pick')
     .setDescription('隨機抽選訊息內容中的其中一個選項。')
-    .addStringOption(option => option.setName('choices').setDescription('抽選選項，以空白分隔')),
+    .addStringOption(option => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true)),
 ]
 
 const execute: CommandProps = async request => {
@@ -18,13 +18,7 @@ const execute: CommandProps = async request => {
     choices: [],
   }
 
-  if (request instanceof Message) {
-    options.choices = request.content
-      .replace(/^(pick|p):/i, '')
-      .trim()
-      .split(/\s+/)
-      .filter(notEmpty)
-  } else if (request.isChatInputCommand()) {
+  if (request.isChatInputCommand()) {
     options.choices = request.options.getString('choices', true).trim().split(/\s+/).filter(notEmpty)
   } else {
     return
@@ -48,26 +42,20 @@ const execute: CommandProps = async request => {
     embeds: [
       {
         color: colorFormatter(OpenColor.cyan[5]),
-        author:
-          request instanceof Message
-            ? {
-                icon_url: request.author.displayAvatarURL(),
-                name: request.author.tag,
-              }
-            : {
-                icon_url: request.user.displayAvatarURL(),
-                name: request.user.tag,
-              },
+        author: {
+          icon_url: request.user.displayAvatarURL(),
+          name: request.user.tag,
+        },
         description: `Message: [Link](${responseMessage.url})\nChoices: ${options.choices.length}`,
         fields: [
           {
             name: 'Choices',
-            value: options.choices.map((v, i) => `${i + 1}. ${v}`).join('\n'),
+            value: options.choices.map((v, i) => `\`${i + 1}.\` ${v}`).join('\n'),
             inline: true,
           },
           {
             name: 'Picked',
-            value: `${pickedIndex + 1}. ${options.choices[pickedIndex]}`,
+            value: `\`${pickedIndex + 1}.\` ${options.choices[pickedIndex]}`,
             inline: true,
           },
         ],
