@@ -2,20 +2,20 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const explode: (times: number, sides: number) => RollResult = (times, sides) => {
-  if (times > 20) {
-    throw new Error('INVALID_TIMES')
+const explode: (count: number, sides: number) => RollResult = (count, sides) => {
+  if (count > 20) {
+    throw new Error('INVALID_COUNT')
   }
   if (sides < 1 || sides > 100) {
     throw new Error('INVALID_SIDES')
   }
 
   const rolls: number[] = []
-  let count = 0
-  while (count < times) {
+  let tmp = 0
+  while (tmp < count) {
     const roll = randomInt(1, sides)
     if (roll < sides) {
-      count += 1
+      tmp += 1
     }
     rolls.push(roll)
   }

@@ -1,6 +1,6 @@
-import { Message, SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { CommandProps, channels, database } from '../utils/cache'
+import { ApplicationCommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -11,7 +11,7 @@ const data = [
     .addStringOption(option => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true)),
 ]
 
-const execute: CommandProps = async request => {
+const execute: ApplicationCommandProps['execute'] = async request => {
   const options: {
     choices: string[]
   } = {
@@ -38,7 +38,7 @@ const execute: CommandProps = async request => {
     content: options.choices[pickedIndex],
     fetchReply: true,
   })
-  const logMessage = await channels['logger']?.send({
+  const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(OpenColor.cyan[5]),

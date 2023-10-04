@@ -11,7 +11,7 @@ import roll from '../dice/roll'
 import rollWithLower from '../dice/rollWithLower'
 import rollWithUpper from '../dice/rollWithUpper'
 import success from '../dice/success'
-import { DICE_REGEXP, RollResult } from './cache'
+import { DICE_REGEXP, EXPRESSION_REGEXP, RollResult } from './cache'
 import notEmpty from './notEmpty'
 
 type DICE_METHOD =
@@ -34,7 +34,7 @@ type DICE_METHOD =
   | 'subtractUpperBound'
   | 'subtractLowerBound'
 
-const DICE_OPERATIONS: {
+const DICE_METHODS: {
   [name in DICE_METHOD]: {
     regexp: RegExp
     exec: (data: number[]) => RollResult
@@ -119,7 +119,7 @@ const getParameters: (expression: string) => number[] = expression =>
 
 const rollDice: (
   expression: string,
-  times?: number,
+  times: number,
 ) => {
   diceExpressions: {
     content: string
@@ -127,7 +127,22 @@ const rollDice: (
     params: number[]
   }[]
   rollResults: RollResult[][]
-} = (expression, times = 1) => {
+} = (expression, times) => {
+  if (!expression) {
+    throw new Error('INVALID_EXPRESSION')
+  }
+  if (expression.length > 50) {
+    throw new Error('INVALID_EXPRESSION_LENGTH')
+  }
+
+  if (!Number.isSafeInteger(times) || times < 1 || times > 10) {
+    throw new Error('INVALID_TIMES')
+  }
+
+  EXPRESSION_REGEXP.lastIndex = 0
+  if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
+    throw new Error('INVALID_EXPRESSION')
+  }
 
   DICE_REGEXP.lastIndex = 0
   const diceExpressions: {
@@ -139,10 +154,9 @@ const rollDice: (
       .match(DICE_REGEXP)
       ?.map(content => {
         let method: DICE_METHOD
-        for (method in DICE_OPERATIONS) {
-          const regexp = DICE_OPERATIONS[method].regexp
-          regexp.lastIndex = 0
-          if (regexp.test(content)) {
+        for (method in DICE_METHODS) {
+          DICE_METHODS[method].regexp.lastIndex = 0
+          if (DICE_METHODS[method].regexp.test(content)) {
             return {
               content,
               method,
@@ -152,7 +166,7 @@ const rollDice: (
         }
         return null
       })
-      .filter(notEmpty) || []
+      .filter(notEmpty) ?? []
 
   if (diceExpressions.length > 10) {
     throw new Error('INVALID_DICE_EXPRESSIONS_NUMBER')
@@ -162,7 +176,7 @@ const rollDice: (
   for (let i = 0; i < times; i++) {
     const rollResult: RollResult[] = []
     for (const diceExpression of diceExpressions) {
-      rollResult.push(DICE_OPERATIONS[diceExpression.method].exec(diceExpression.params))
+      rollResult.push(DICE_METHODS[diceExpression.method].exec(diceExpression.params))
     }
     rollResults.push(rollResult)
   }

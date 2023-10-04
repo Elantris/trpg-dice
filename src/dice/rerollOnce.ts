@@ -2,12 +2,18 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const rerollOnce: (times: number, sides: number, minimum: number, chooseHigher?: boolean) => RollResult = (
-  times,
+const rerollOnce: (count: number, sides: number, minimum: number, chooseHigher?: boolean) => RollResult = (
+  count,
   sides,
   minimum,
   chooseHigher = false,
 ) => {
+  if (count > 20) {
+    throw new Error('INVALID_COUNT')
+  }
+  if (sides < 1 || sides > 100) {
+    throw new Error('INVALID_SIDES')
+  }
   if (minimum > sides) {
     throw new Error('INVALID_DICE_EXPRESSION')
   }
@@ -15,7 +21,7 @@ const rerollOnce: (times: number, sides: number, minimum: number, chooseHigher?:
   const rolls: number[] = []
   const results: number[] = []
 
-  for (let i = 0; i < times; i++) {
+  for (let i = 0; i < count; i++) {
     const roll = randomInt(1, sides)
     rolls.push(roll)
     if (roll < minimum) {

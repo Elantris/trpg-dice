@@ -1,5 +1,5 @@
 import { ApplicationCommandType, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js'
-import { CommandProps, channels, database } from '../utils/cache'
+import { ApplicationCommandProps, channels, database } from '../utils/cache'
 
 const data = [
   new SlashCommandBuilder()
@@ -9,7 +9,7 @@ const data = [
   new ContextMenuCommandBuilder().setName('trace').setType(ApplicationCommandType.Message),
 ]
 
-const execute: CommandProps = async request => {
+const execute: ApplicationCommandProps['execute'] = async request => {
   const options: {
     search: string
     targetMessageId: string
@@ -54,7 +54,7 @@ const execute: CommandProps = async request => {
     return
   }
 
-  const logMessage = await channels['logger']?.messages.fetch(logMessageId).catch(() => null)
+  const logMessage = await channels['logger'].messages.fetch(logMessageId).catch(() => null)
   if (!logMessage) {
     await request.reply({
       content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,

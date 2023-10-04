@@ -1,6 +1,6 @@
 import { Embed, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { CommandProps, ERROR_DESCRIPTIONS, EXPRESSION_REGEXP, channels, database } from '../utils/cache'
+import { ApplicationCommandProps, ERROR_DESCRIPTIONS, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import rollDice from '../utils/rollDice'
 
@@ -9,67 +9,34 @@ const data = [
     .setName('roll')
     .setDescription('計算一個四則運算的算式，並將其中的骰子語法替換成擲骰結果')
     .addStringOption(option => option.setName('expression').setDescription('包含骰子語法的算式').setRequired(true))
-    .addIntegerOption(option => option.setName('repeat').setDescription('重複次數')),
+    .addIntegerOption(option => option.setName('times').setDescription('重複次數')),
   new SlashCommandBuilder().setName('d6').setDescription('丟擲一顆 6 面骰，並顯示結果'),
   new SlashCommandBuilder().setName('d20').setDescription('丟擲一顆 20 面骰，並顯示結果'),
   new SlashCommandBuilder().setName('d100').setDescription('丟擲一顆 100 面骰，並顯示結果'),
 ]
 
-const execute: CommandProps = async (request, override) => {
+const execute: ApplicationCommandProps['execute'] = async (request, overrideOptions) => {
   const options: {
     expression: string
-    repeat: number
+    times: number
   } = {
     expression: '',
-    repeat: 0,
+    times: 1,
   }
 
   if (request.isChatInputCommand()) {
-    options.repeat = override?.['repeat'] ?? request.options.getInteger('repeat') ?? 1
+    options.times = overrideOptions?.['times'] ?? request.options.getInteger('times') ?? 1
     options.expression =
-      override?.['expression'] ?? request.options.getString('expression', true).replace(/\s+/g, '').trim()
+      overrideOptions?.['expression'] ?? request.options.getString('expression', true).replace(/\s+/g, '').trim()
   } else {
     return
   }
 
-  if (!Number.isSafeInteger(options.repeat) || options.repeat < 1 || options.repeat > 10) {
-    await request.reply({
-      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_REPEAT']}`,
-      ephemeral: true,
-    })
-    return
-  }
-
-  if (!options.expression) {
-    await request.reply({
-      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`,
-      ephemeral: true,
-    })
-    return
-  }
-
-  if (options.expression.length > 50) {
-    await request.reply({
-      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION_LENGTH']}`,
-      ephemeral: true,
-    })
-    return
-  }
-
-  EXPRESSION_REGEXP.lastIndex = 0
-  if (!EXPRESSION_REGEXP.test(options.expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
-    await request.reply({
-      content: `:x: ${ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`,
-      ephemeral: true,
-    })
-    return
-  }
-
-  const responseContents: string[] = [`Roll(**${options.repeat}**): \`${options.expression}\``]
+  const responseContents: string[] = [`Roll(**${options.times}**): \`${options.expression}\``]
   const logFields: Embed['fields'] = []
   let commandError: Error | undefined = undefined
   try {
-    const { diceExpressions, rollResults } = rollDice(options.expression, options.repeat)
+    const { diceExpressions, rollResults } = rollDice(options.expression, options.times)
 
     rollResults.forEach((rollResult, i) => {
       let resultExpression = options.expression
@@ -101,7 +68,7 @@ const execute: CommandProps = async (request, override) => {
     ephemeral: !!commandError,
     fetchReply: true,
   })
-  const logMessage = await channels['logger']?.send({
+  const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(commandError ? OpenColor.red[5] : OpenColor.violet[5]),
@@ -109,10 +76,10 @@ const execute: CommandProps = async (request, override) => {
           icon_url: request.user.displayAvatarURL(),
           name: request.user.tag,
         },
-        description: 'Message: [Link]({MESSAGE_LINK})\nExpression: `{EXPRESSION}`\nTimes: {REPEAT}'
+        description: 'Message: [Link]({MESSAGE_LINK})\nExpression: `{EXPRESSION}`\nTimes: {TIMES}'
           .replace('{MESSAGE_LINK}', responseMessage.url)
           .replace('{EXPRESSION}', options.expression)
-          .replace('{REPEAT}', `${options.repeat}`),
+          .replace('{TIMES}', `${options.times}`),
         fields: commandError
           ? [
               {

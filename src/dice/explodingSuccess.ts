@@ -1,8 +1,8 @@
 import { RollResult } from '../utils/cache'
 import explode from './explode'
 
-const explodingSuccess: (times: number, sides: number, target: number) => RollResult = (times, sides, target) => {
-  const { rolls } = explode(times, sides)
+const explodingSuccess: (count: number, sides: number, target: number) => RollResult = (count, sides, target) => {
+  const { rolls } = explode(count, sides)
 
   let value = 0
   let sum = 0

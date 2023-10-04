@@ -12,7 +12,8 @@
     "push:embpr": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@embpr:/Users/elantris/Project/trpg-dice",
     "push:gcp": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@gcp:/home/elantris/projects/trpg-dice",
     "push:aws": "rsync -arvz --delete build package.json pnpm-lock.yaml .env ec2-user@aws:/home/ec2-user/projects/trpg-dice",
-    "push": "npm run push:embpr"
+    "push:garyuu": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@garyuu.duckdns.org:/home/elantris/projects/trpg-dice",
+    "push": "npm run push:garyuu"
   },
   "repository": {
     "type": "git",
@@ -27,16 +28,16 @@
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
     "@firebase/app-types": "^0.9.0",
-    "@types/luxon": "^3.3.1",
-    "@types/node": "^20.5.2",
-    "@types/ramda": "^0.29.3",
-    "@types/ws": "^8.5.5",
+    "@types/luxon": "^3.3.2",
+    "@types/node": "^20.8.2",
+    "@types/ramda": "^0.29.5",
+    "@types/ws": "^8.5.6",
     "discord.js": "^14.13.0",
     "dotenv": "^16.3.1",
-    "firebase-admin": "^11.10.1",
-    "luxon": "^3.4.0",
+    "firebase-admin": "^11.11.0",
+    "luxon": "^3.4.3",
     "open-color": "^1.9.1",
     "ramda": "^0.29.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   }
 }

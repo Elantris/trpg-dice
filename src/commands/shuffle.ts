@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { CommandProps, channels, database } from '../utils/cache'
+import { ApplicationCommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -11,7 +11,7 @@ const data = [
     .addStringOption(option => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true)),
 ]
 
-const execute: CommandProps = async request => {
+const execute: ApplicationCommandProps['execute'] = async request => {
   const options: {
     items: string[]
   } = {
@@ -19,7 +19,7 @@ const execute: CommandProps = async request => {
   }
 
   if (request.isChatInputCommand()) {
-    options.items = request.options.getString('items', true).split(/\s+/).filter(notEmpty)
+    options.items = request.options.getString('items', true).trim().split(/\s+/).filter(notEmpty)
   } else {
     return
   }
@@ -43,7 +43,7 @@ const execute: CommandProps = async request => {
     content: orders.map(order => options.items[order]).join(' '),
     fetchReply: true,
   })
-  const logMessage = await channels['logger']?.send({
+  const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(OpenColor.teal[5]),
@@ -72,6 +72,7 @@ const execute: CommandProps = async request => {
     await database.ref(`/logs/${request.guildId}/${responseMessage.id}`).set(logMessage.id)
   }
 }
+
 export default {
   data,
   execute,

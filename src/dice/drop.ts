@@ -2,8 +2,8 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import roll from './roll'
 
-const drop: (times: number, sides: number, ignore: number) => RollResult = (times, sides, ignore) => {
-  const { rolls } = roll(times, sides)
+const drop: (count: number, sides: number, ignore: number) => RollResult = (count, sides, ignore) => {
+  const { rolls } = roll(count, sides)
 
   return {
     value: sum(rolls.sort((a, b) => a - b).slice(ignore)),
