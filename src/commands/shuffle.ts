@@ -4,14 +4,15 @@ import { ApplicationCommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
-const data = [
+const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('shuffle')
     .setDescription('將一連串項目以隨機順序排列')
-    .addStringOption(option => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true)),
+    .addStringOption((option) => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true))
+    .setDMPermission(false),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async request => {
+const execute: ApplicationCommandProps['execute'] = async (request) => {
   const options: {
     items: string[]
   } = {
@@ -32,15 +33,16 @@ const execute: ApplicationCommandProps['execute'] = async request => {
     return
   }
 
-  const orders: number[] = []
-  options.items.forEach((v, i) => orders.push(i))
-  for (let i = orders.length - 1; i > 0; i--) {
+  const orders: number[] = Array.from({ length: options.items.length }, (_, i) => i)
+  for (let i = orders.length - 1; i !== 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[orders[i], orders[j]] = [orders[j], orders[i]]
   }
 
   const responseMessage = await request.reply({
-    content: orders.map(order => options.items[order]).join(' '),
+    content: `:game_die: Shuffle(**${options.items.length}**):\n${orders
+      .map((order) => options.items[order])
+      .join(' ')}`,
     fetchReply: true,
   })
   const logMessage = await channels['logger'].send({
@@ -60,7 +62,7 @@ const execute: ApplicationCommandProps['execute'] = async request => {
           },
           {
             name: 'Result',
-            value: orders.map(order => `\`${order + 1}.\` ${options.items[order]}`).join('\n'),
+            value: orders.map((order) => `\`${order + 1}.\` ${options.items[order]}`).join('\n'),
             inline: true,
           },
         ],

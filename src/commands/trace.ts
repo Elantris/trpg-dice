@@ -1,15 +1,16 @@
 import { ApplicationCommandType, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js'
 import { ApplicationCommandProps, channels, database } from '../utils/cache'
 
-const data = [
+const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('trace')
     .setDescription('查看一則指令結果的詳細資訊')
-    .addStringOption(option => option.setName('target').setDescription('訊息的連結或 ID').setRequired(true)),
-  new ContextMenuCommandBuilder().setName('trace').setType(ApplicationCommandType.Message),
+    .addStringOption((option) => option.setName('target').setDescription('訊息連結').setRequired(true))
+    .setDMPermission(false),
+  new ContextMenuCommandBuilder().setName('trace').setType(ApplicationCommandType.Message).setDMPermission(false),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async request => {
+const execute: ApplicationCommandProps['execute'] = async (request) => {
   const options: {
     search: string
     targetMessageId: string
@@ -34,12 +35,9 @@ const execute: ApplicationCommandProps['execute'] = async request => {
     // channel id - message id
     const [, messageId] = options.search.split('-')
     options.targetMessageId = messageId
-  } else if (/^\d+$/.test(options.search)) {
-    // message id
-    options.targetMessageId = options.search
   } else {
     await request.reply({
-      content: ':x: 找不到訊息',
+      content: ':x: 未知的訊息格式',
       ephemeral: true,
     })
     return

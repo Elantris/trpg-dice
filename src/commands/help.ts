@@ -1,9 +1,11 @@
 import { SlashCommandBuilder } from 'discord.js'
 import { ApplicationCommandProps } from '../utils/cache'
 
-const data = [new SlashCommandBuilder().setName('help').setDescription('查看說明文件與開發群組連結')]
+const data: ApplicationCommandProps['data'] = [
+  new SlashCommandBuilder().setName('help').setDescription('查看說明文件與開發群組連結').setDMPermission(false),
+]
 
-const execute: ApplicationCommandProps['execute'] = async request => {
+const execute: ApplicationCommandProps['execute'] = async (request) => {
   if (!request.isChatInputCommand()) {
     return
   }

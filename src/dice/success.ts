@@ -9,7 +9,7 @@ const success: (count: number, sides: number, target: number) => RollResult = (c
   const { rolls } = roll(count, sides)
 
   return {
-    value: rolls.filter(roll => roll > target).length,
+    value: rolls.filter((roll) => roll > target).length,
     rolls,
   }
 }

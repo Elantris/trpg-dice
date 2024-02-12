@@ -4,14 +4,15 @@ import { ApplicationCommandProps, channels, database } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
-const data = [
+const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('pick')
     .setDescription('隨機抽選訊息內容中的其中一個選項。')
-    .addStringOption(option => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true)),
+    .addStringOption((option) => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true))
+    .setDMPermission(false),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async request => {
+const execute: ApplicationCommandProps['execute'] = async (request) => {
   const options: {
     choices: string[]
   } = {
@@ -35,7 +36,7 @@ const execute: ApplicationCommandProps['execute'] = async request => {
   const pickedIndex = Math.floor(Math.random() * options.choices.length)
 
   const responseMessage = await request.reply({
-    content: options.choices[pickedIndex],
+    content: `:game_die: Pick(**${options.choices.length}**): ${pickedIndex + 1}\n${options.choices[pickedIndex]}`,
     fetchReply: true,
   })
   const logMessage = await channels['logger'].send({

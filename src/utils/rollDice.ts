@@ -14,118 +14,102 @@ import success from '../dice/success'
 import { DICE_REGEXP, EXPRESSION_REGEXP, RollResult } from './cache'
 import notEmpty from './notEmpty'
 
-type DICE_METHOD =
-  | 'roll'
-  | 'drop'
-  | 'keep'
-  | 'reroll'
-  | 'rerollOnceAndKeep'
-  | 'rerollOnceAndChoose'
-  | 'success'
-  | 'explode'
-  | 'explodingSuccess'
-  | 'open'
-  | 'dropHigh'
-  | 'keepLow'
-  | 'upperBound'
-  | 'lowerBound'
-  | 'addUpperBound'
-  | 'addLowerBound'
-  | 'subtractUpperBound'
-  | 'subtractLowerBound'
+const ParameterSymbols = ['X', 'Y', 'Z', 'W']
+const getParameters: (expression: string) => number[] = (expression) =>
+  expression.split(/[a-z]+/gi).map((v) => (v ? parseInt(v) : 1))
+
+type DiceExpression = {
+  content: string
+  format: string
+  name: string
+  params: number[]
+}
 
 const DICE_METHODS: {
-  [name in DICE_METHOD]: {
-    regexp: RegExp
+  [format: string]: {
+    name: string
     exec: (data: number[]) => RollResult
   }
 } = {
-  roll: {
-    regexp: /^\d*d\d+$/gi,
-    exec: data => roll(data[0], data[1]),
+  XdY: {
+    name: 'roll',
+    exec: (data) => roll(data[0], data[1]),
   },
-  drop: {
-    regexp: /^\d*d\d+d\d+$/gi,
-    exec: data => drop(data[0], data[1], data[2]),
+  XdYdZ: {
+    name: 'drop',
+    exec: (data) => drop(data[0], data[1], data[2]),
   },
-  keep: {
-    regexp: /^\d*d\d+k\d+$/gi,
-    exec: data => keep(data[0], data[1], data[2]),
+  XdYkZ: {
+    name: 'keep',
+    exec: (data) => keep(data[0], data[1], data[2]),
   },
-  reroll: {
-    regexp: /^\d*d\d+r\d+$/gi,
-    exec: data => reroll(data[0], data[1], data[2]),
+  XdYrZ: {
+    name: 'reroll',
+    exec: (data) => reroll(data[0], data[1], data[2]),
   },
-  rerollOnceAndKeep: {
-    regexp: /^\d*d\d+rk\d+$/gi,
-    exec: data => rerollOnce(data[0], data[1], data[2]),
+  XdYrkZ: {
+    name: 'rerollOnceAndKeep',
+    exec: (data) => rerollOnce(data[0], data[1], data[2]),
   },
-  rerollOnceAndChoose: {
-    regexp: /^\d*d\d+rc\d+$/gi,
-    exec: data => rerollOnce(data[0], data[1], data[2], true),
+  XdYrcZ: {
+    name: 'rerollOnceAndChoose',
+    exec: (data) => rerollOnce(data[0], data[1], data[2], true),
   },
-  success: {
-    regexp: /^\d*d\d+s\d+$/gi,
-    exec: data => success(data[0], data[1], data[2]),
+  XdYsZ: {
+    name: 'success',
+    exec: (data) => success(data[0], data[1], data[2]),
   },
-  explode: {
-    regexp: /^\d*d\d+e$/gi,
-    exec: data => explode(data[0], data[1]),
+  XdYe: {
+    name: 'explode',
+    exec: (data) => explode(data[0], data[1]),
   },
-  explodingSuccess: {
-    regexp: /^\d*d\d+es\d+$/gi,
-    exec: data => explodingSuccess(data[0], data[1], data[2]),
+  XdYesZ: {
+    name: 'explodingSuccess',
+    exec: (data) => explodingSuccess(data[0], data[1], data[2]),
   },
-  open: {
-    regexp: /^\d*d\d+o$/gi,
-    exec: data => openTest(data[0], data[1]),
+  XdYo: {
+    name: 'open',
+    exec: (data) => openTest(data[0], data[1]),
   },
-  dropHigh: {
-    regexp: /^\d*d\d+dh\d+$/gi,
-    exec: data => dropHighest(data[0], data[1], data[2]),
+  XdYdhZ: {
+    name: 'dropHigh',
+    exec: (data) => dropHighest(data[0], data[1], data[2]),
   },
-  keepLow: {
-    regexp: /^\d*d\d+kl\d+$/gi,
-    exec: data => keepLowest(data[0], data[1], data[2]),
+  XdYklZ: {
+    name: 'keepLow',
+    exec: (data) => keepLowest(data[0], data[1], data[2]),
   },
-  upperBound: {
-    regexp: /^\d*d\d+u\d+$/gi,
-    exec: data => rollWithUpper(data[0], data[1], data[2]),
+  XdYuZ: {
+    name: 'upperBound',
+    exec: (data) => rollWithUpper(data[0], data[1], data[2]),
   },
-  lowerBound: {
-    regexp: /^\d*d\d+l\d+$/gi,
-    exec: data => rollWithLower(data[0], data[1], data[2]),
+  XdYlZ: {
+    name: 'lowerBound',
+    exec: (data) => rollWithLower(data[0], data[1], data[2]),
   },
-  addUpperBound: {
-    regexp: /^\d*d\d+a\d+u\d+$/gi,
-    exec: data => rollWithUpper(data[0], data[1], data[3], data[2]),
+  XdYaZuW: {
+    name: 'addUpperBound',
+    exec: (data) => rollWithUpper(data[0], data[1], data[3], data[2]),
   },
-  addLowerBound: {
-    regexp: /^\d*d\d+a\d+l\d+$/gi,
-    exec: data => rollWithLower(data[0], data[1], data[3], data[2]),
+  XdYaZlW: {
+    name: 'addLowerBound',
+    exec: (data) => rollWithLower(data[0], data[1], data[3], data[2]),
   },
-  subtractUpperBound: {
-    regexp: /^\d*d\d+s\d+u\d+$/gi,
-    exec: data => rollWithUpper(data[0], data[1], data[3], data[2] * -1),
+  XdYsZuW: {
+    name: 'subtractUpperBound',
+    exec: (data) => rollWithUpper(data[0], data[1], data[3], data[2] * -1),
   },
-  subtractLowerBound: {
-    regexp: /^\d*d\d+s\d+l\d+$/gi,
-    exec: data => rollWithLower(data[0], data[1], data[3], data[2] * -1),
+  XdYsZlW: {
+    name: 'subtractLowerBound',
+    exec: (data) => rollWithLower(data[0], data[1], data[3], data[2] * -1),
   },
 }
-
-const getParameters: (expression: string) => number[] = expression =>
-  expression.split(/[a-z]+/gi).map(v => parseInt(v) || 1)
 
 const rollDice: (
   expression: string,
   times: number,
 ) => {
-  diceExpressions: {
-    content: string
-    method: DICE_METHOD
-    params: number[]
-  }[]
+  diceExpressions: DiceExpression[]
   rollResults: RollResult[][]
 } = (expression, times) => {
   if (!expression) {
@@ -145,23 +129,18 @@ const rollDice: (
   }
 
   DICE_REGEXP.lastIndex = 0
-  const diceExpressions: {
-    content: string
-    method: DICE_METHOD
-    params: number[]
-  }[] =
+  const diceExpressions: DiceExpression[] =
     expression
       .match(DICE_REGEXP)
-      ?.map(content => {
-        let method: DICE_METHOD
-        for (method in DICE_METHODS) {
-          DICE_METHODS[method].regexp.lastIndex = 0
-          if (DICE_METHODS[method].regexp.test(content)) {
-            return {
-              content,
-              method,
-              params: getParameters(content),
-            }
+      ?.map((content) => {
+        let index = 0
+        const format = `0${content}`.toLocaleLowerCase().replace(/\d+/gi, () => ParameterSymbols[index++] ?? '')
+        if (DICE_METHODS[format]) {
+          return {
+            content,
+            format,
+            name: DICE_METHODS[format].name,
+            params: getParameters(content),
           }
         }
         return null
@@ -172,14 +151,9 @@ const rollDice: (
     throw new Error('INVALID_DICE_EXPRESSIONS_NUMBER')
   }
 
-  const rollResults: RollResult[][] = []
-  for (let i = 0; i < times; i++) {
-    const rollResult: RollResult[] = []
-    for (const diceExpression of diceExpressions) {
-      rollResult.push(DICE_METHODS[diceExpression.method].exec(diceExpression.params))
-    }
-    rollResults.push(rollResult)
-  }
+  const rollResults: RollResult[][] = Array.from({ length: times }, () =>
+    diceExpressions.map((v) => DICE_METHODS[v.format].exec(v.params)),
+  )
 
   return {
     diceExpressions,

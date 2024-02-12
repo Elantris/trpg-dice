@@ -26,7 +26,7 @@ const client = new Client({
 const commandData: RESTPostAPIApplicationCommandsJSONBody[] = []
 const commands: { [CommandName in string]?: ApplicationCommandProps['execute'] } = {}
 
-readdirSync(join(__dirname, './commands')).forEach(async filename => {
+readdirSync(join(__dirname, './commands')).forEach(async (filename) => {
   if (!filename.endsWith('.js') && !filename.endsWith('.ts')) {
     return
   }
@@ -35,11 +35,11 @@ readdirSync(join(__dirname, './commands')).forEach(async filename => {
     join(__dirname, './commands', filename)
   )
   commands[commandName] = command.execute
-  command.data.forEach(v => commandData.push(v.toJSON()))
+  command.data.forEach((v) => commandData.push(v.toJSON()))
 })
 
 // handle command
-client.on(Events.InteractionCreate, async interaction => {
+client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
     return
   }
@@ -47,7 +47,7 @@ client.on(Events.InteractionCreate, async interaction => {
   try {
     let commandName = interaction.commandName
     let overrideOptions: any = undefined
-    if (interaction.commandName === 'd6' || interaction.commandName === 'd20' || interaction.commandName === 'd100') {
+    if (/^d\d+$/.test(interaction.commandName)) {
       commandName = 'roll'
       overrideOptions = {
         expression: interaction.commandName,
@@ -59,31 +59,29 @@ client.on(Events.InteractionCreate, async interaction => {
       .reply(`:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`)
       .catch(() => {})
 
-    if (error instanceof Error) {
-      await channels['logger']
-        .send({
-          content: `\`${timeFormatter({ time: interaction.createdTimestamp })}\` ${
-            interaction.isChatInputCommand()
-              ? interaction
-              : `/${interaction.commandName} ${interaction.targetMessage.url} (Context Menu)`
-          }`,
-          embeds: [
-            {
-              color: colorFormatter(OpenColor.red[5]),
-              description: `\`\`\`${error.stack}\`\`\``,
-            },
-          ],
-        })
-        .catch(() => {})
-    }
+    await channels['logger']
+      .send({
+        content: `\`${timeFormatter({ time: interaction.createdTimestamp })}\` ${
+          interaction.isChatInputCommand()
+            ? interaction
+            : `/${interaction.commandName} ${interaction.targetMessage.url} (Context Menu)`
+        }`,
+        embeds: [
+          {
+            color: colorFormatter(OpenColor.red[5]),
+            description: `\`\`\`${error instanceof Error ? error.stack : error}\`\`\``,
+          },
+        ],
+      })
+      .catch(() => {})
   }
 })
 
-client.on(Events.GuildDelete, async guild => {
+client.on(Events.GuildDelete, async (guild) => {
   await database.ref(`/logs/${guild.id}`).remove()
 })
 
-client.on(Events.ClientReady, async client => {
+client.on(Events.ClientReady, async (client) => {
   const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
   if (loggerChannel?.type !== ChannelType.GuildText) {
     console.log(`logger channel not found`)
@@ -96,9 +94,11 @@ client.on(Events.ClientReady, async client => {
   try {
     await rest.put(Routes.applicationCommands(client.user.id), { body: commandData })
   } catch (error) {
-    if (error instanceof Error) {
-      await loggerChannel.send(`\`${timeFormatter()}\` Register slash commands error\n\`\`\`${error.stack}\`\`\``)
-    }
+    await loggerChannel.send(
+      `\`${timeFormatter()}\` Register slash commands error\n\`\`\`${
+        error instanceof Error ? error.stack : error
+      }\`\`\``,
+    )
   }
 
   await loggerChannel.send(`\`${timeFormatter()}\` ${client.user.tag}`)

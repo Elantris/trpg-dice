@@ -11,7 +11,7 @@ const rollWithLower: (count: number, sides: number, minimum: number, modifier?: 
   const { rolls } = roll(count, sides)
 
   return {
-    value: sum(rolls.map(roll => (roll + modifier < minimum ? minimum : roll + modifier))),
+    value: sum(rolls.map((roll) => (roll + modifier < minimum ? minimum : roll + modifier))),
     rolls,
   }
 }
