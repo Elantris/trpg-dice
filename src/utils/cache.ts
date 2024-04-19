@@ -27,7 +27,7 @@ export type RollResult = {
 }
 
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
-export const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`, 'gi') // [+-*/] [X.Y | XdYaZbW]
+export const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`, 'gi') // [+-*/,] [X.Y | XdYaZbW]
 export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_TIMES: '算式重複計算次數限 1 ~ 10 次',
   INVALID_EXPRESSION: '無效的算式',

@@ -39,10 +39,20 @@ readdirSync(join(__dirname, './commands')).forEach(async (filename) => {
 })
 
 // handle command
+const lastUsedAt: Record<string, number> = {}
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
     return
   }
+
+  if (interaction.createdTimestamp - (lastUsedAt[interaction.user.id] ?? 0) < 3000) {
+    await interaction.reply({
+      content: ':ice_cube:',
+      ephemeral: true,
+    })
+    return
+  }
+  lastUsedAt[interaction.user.id] = interaction.createdTimestamp
 
   try {
     let commandName = interaction.commandName

@@ -124,7 +124,7 @@ const rollDice: (
   }
 
   EXPRESSION_REGEXP.lastIndex = 0
-  if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/gi, '(').replace(/[\(\)]/gi, ''))) {
+  if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/g, '(').replace(/[\(\)]+/gi, ''))) {
     throw new Error('INVALID_EXPRESSION')
   }
 
