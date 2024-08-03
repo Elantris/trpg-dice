@@ -5,14 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node build/main.js",
+    "dev": "NODE_ENV=development bun run src/main.ts",
+    "format": "prettier --write src",
     "build": "rm -rf ./build/* && ./node_modules/.bin/tsc",
     "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000 && pm2 monit",
-    "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit",
-    "dev": "NODE_ENV=development ts-node src/main.ts",
-    "format": "prettier --write src/**/*.ts",
-    "push:embpr": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@embpr:/Users/elantris/Project/trpg-dice",
-    "push:garyuu": "rsync -arvz --delete build package.json pnpm-lock.yaml .env elantris@garyuu.duckdns.org:/home/elantris/projects/trpg-dice",
-    "push": "npm run push:garyuu"
+    "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit"
   },
   "repository": {
     "type": "git",
@@ -26,17 +23,18 @@
   },
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
-    "@firebase/app-types": "^0.9.1",
+    "@firebase/app-types": "^0.9.2",
     "@types/luxon": "^3.4.2",
-    "@types/node": "^20.12.7",
-    "@types/ramda": "^0.29.12",
-    "@types/ws": "^8.5.10",
-    "discord.js": "^14.14.1",
+    "@types/node": "^22.5.1",
+    "@types/ramda": "^0.30.2",
+    "@types/ws": "^8.5.12",
+    "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
-    "firebase-admin": "^12.1.0",
-    "luxon": "^3.4.4",
+    "firebase-admin": "^12.4.0",
+    "luxon": "^3.5.0",
     "open-color": "^1.9.1",
-    "ramda": "^0.29.1",
-    "typescript": "^5.4.5"
+    "prettier-plugin-organize-imports": "^4.0.0",
+    "ramda": "^0.30.1",
+    "typescript": "^5.5.4"
   }
 }

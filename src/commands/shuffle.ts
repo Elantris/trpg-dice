@@ -8,8 +8,8 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('shuffle')
     .setDescription('將一連串項目以隨機順序排列')
-    .addStringOption((option) => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true))
-    .setDMPermission(false),
+    .setDMPermission(false)
+    .addStringOption((option) => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true)),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {
@@ -57,12 +57,12 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
         fields: [
           {
             name: 'Input',
-            value: options.items.map((element, index) => `\`${index + 1}.\` ${element}`).join('\n'),
+            value: options.items.map((element, index) => `${index + 1}. \`${element}\``).join('\n'),
             inline: true,
           },
           {
             name: 'Result',
-            value: orders.map((order) => `\`${order + 1}.\` ${options.items[order]}`).join('\n'),
+            value: orders.map((order) => `${order + 1}. \`${options.items[order]}\``).join('\n'),
             inline: true,
           },
         ],

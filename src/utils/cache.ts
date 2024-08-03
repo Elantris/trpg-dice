@@ -1,5 +1,29 @@
-import { ContextMenuCommandBuilder, Interaction, SlashCommandBuilder, TextChannel } from 'discord.js'
+import {
+  AutocompleteInteraction,
+  ContextMenuCommandBuilder,
+  Interaction,
+  SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
+  TextChannel,
+} from 'discord.js'
 import admin from 'firebase-admin'
+
+export type ApplicationCommandProps = {
+  data: (
+    | SlashCommandBuilder
+    | SlashCommandOptionsOnlyBuilder
+    | SlashCommandSubcommandsOnlyBuilder
+    | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
+    | ContextMenuCommandBuilder
+  )[]
+  execute: (request: Interaction, overrideOptions?: Record<string, any>) => Promise<void>
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>
+}
+export type RollResult = {
+  value: number
+  rolls: number[]
+}
 
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -13,19 +37,6 @@ export const database = admin.database()
 
 export const channels: { [key in string]: TextChannel } = {}
 
-export type ApplicationCommandProps = {
-  data: (
-    | SlashCommandBuilder
-    | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
-    | ContextMenuCommandBuilder
-  )[]
-  execute: (request: Interaction, overrideOptions?: Record<string, any>) => Promise<void>
-}
-export type RollResult = {
-  value: number
-  rolls: number[]
-}
-
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
 export const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`, 'gi') // [+-*/,] [X.Y | XdYaZbW]
 export const ERROR_DESCRIPTIONS: Record<string, string> = {
@@ -37,3 +48,11 @@ export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_SIDES: '骰子面數限 d1 ~ d100',
   INVALID_DICE_EXPRESSION: '骰子語法錯誤',
 }
+
+export const lucks: {
+  [guildId: string]: {
+    [date: string]: {
+      [userId: string]: string
+    }
+  }
+} = {}

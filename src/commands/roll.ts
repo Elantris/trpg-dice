@@ -8,9 +8,9 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('roll')
     .setDescription('計算一個四則運算的算式，並將其中的骰子語法替換成擲骰結果')
+    .setDMPermission(false)
     .addStringOption((option) => option.setName('expression').setDescription('包含骰子語法的算式').setRequired(true))
-    .addIntegerOption((option) => option.setName('times').setDescription('計算次數'))
-    .setDMPermission(false),
+    .addIntegerOption((option) => option.setName('times').setDescription('計算次數')),
   new SlashCommandBuilder().setName('d4').setDescription('丟擲一顆 4 面骰，並顯示結果').setDMPermission(false),
   new SlashCommandBuilder().setName('d6').setDescription('丟擲一顆 6 面骰，並顯示結果').setDMPermission(false),
   new SlashCommandBuilder().setName('d8').setDescription('丟擲一顆 8 面骰，並顯示結果').setDMPermission(false),

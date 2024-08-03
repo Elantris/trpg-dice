@@ -8,8 +8,8 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('pick')
     .setDescription('隨機抽選訊息內容中的其中一個選項。')
-    .addStringOption((option) => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true))
-    .setDMPermission(false),
+    .setDMPermission(false)
+    .addStringOption((option) => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true)),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {

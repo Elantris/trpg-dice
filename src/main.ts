@@ -14,6 +14,7 @@ import {
 import { readdirSync } from 'fs'
 import OpenColor from 'open-color'
 import { join } from 'path'
+import { loadPool } from './commands/luck'
 import { ApplicationCommandProps, channels, database } from './utils/cache'
 import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
@@ -24,7 +25,7 @@ const client = new Client({
 
 // load commands
 const commandData: RESTPostAPIApplicationCommandsJSONBody[] = []
-const commands: { [CommandName in string]?: ApplicationCommandProps['execute'] } = {}
+const commands: { [CommandName in string]?: ApplicationCommandProps } = {}
 
 readdirSync(join(__dirname, './commands')).forEach(async (filename) => {
   if (!filename.endsWith('.js') && !filename.endsWith('.ts')) {
@@ -34,13 +35,18 @@ readdirSync(join(__dirname, './commands')).forEach(async (filename) => {
   const { default: command }: { default: ApplicationCommandProps } = await import(
     join(__dirname, './commands', filename)
   )
-  commands[commandName] = command.execute
+  commands[commandName] = command
   command.data.forEach((v) => commandData.push(v.toJSON()))
 })
 
 // handle command
 const lastUsedAt: Record<string, number> = {}
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isAutocomplete()) {
+    commands[interaction.commandName]?.autocomplete?.(interaction)
+    return
+  }
+
   if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
     return
   }
@@ -63,7 +69,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         expression: interaction.commandName,
       }
     }
-    await commands[commandName]?.(interaction, overrideOptions)
+    await commands[commandName]?.execute(interaction, overrideOptions)
   } catch (error: any) {
     await interaction
       .reply(`:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`)
@@ -111,11 +117,14 @@ client.on(Events.ClientReady, async (client) => {
     )
   }
 
-  await loggerChannel.send(`\`${timeFormatter()}\` ${client.user.tag}`)
+  // load luck pool
+  await loadPool(client)
 
+  // bot client ready
+  await loggerChannel.send(`\`${timeFormatter()}\` ${client.user.tag}`)
   setInterval(() => {
     client.user.setActivity(`on ${client.guilds.cache.size} guilds.`)
-  }, 10000)
+  }, 30000)
 })
 
 client.login(process.env['TOKEN'])
