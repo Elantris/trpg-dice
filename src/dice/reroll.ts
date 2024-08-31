@@ -2,7 +2,11 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const reroll: (count: number, sides: number, minimum: number) => RollResult = (count, sides, minimum) => {
+const reroll: (count: number, sides: number, minimum: number) => RollResult = (
+  count,
+  sides,
+  minimum,
+) => {
   if (count > 20) {
     throw new Error('INVALID_COUNT')
   }

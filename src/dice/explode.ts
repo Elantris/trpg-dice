@@ -2,7 +2,10 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const explode: (count: number, sides: number) => RollResult = (count, sides) => {
+const explode: (count: number, sides: number) => RollResult = (
+  count,
+  sides,
+) => {
   if (count > 20) {
     throw new Error('INVALID_COUNT')
   }

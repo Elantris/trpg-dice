@@ -32,9 +32,8 @@ readdirSync(join(__dirname, './commands')).forEach(async (filename) => {
     return
   }
   const commandName = filename.split('.')[0]
-  const { default: command }: { default: ApplicationCommandProps } = await import(
-    join(__dirname, './commands', filename)
-  )
+  const { default: command }: { default: ApplicationCommandProps } =
+    await import(join(__dirname, './commands', filename))
   commands[commandName] = command
   command.data.forEach((v) => commandData.push(v.toJSON()))
 })
@@ -47,11 +46,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return
   }
 
-  if (!interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
+  if (
+    !interaction.isChatInputCommand() &&
+    !interaction.isMessageContextMenuCommand()
+  ) {
     return
   }
 
-  if (interaction.createdTimestamp - (lastUsedAt[interaction.user.id] ?? 0) < 3000) {
+  if (
+    interaction.createdTimestamp - (lastUsedAt[interaction.user.id] ?? 0) <
+    3000
+  ) {
     await interaction.reply({
       content: ':ice_cube:',
       ephemeral: true,
@@ -72,7 +77,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await commands[commandName]?.execute(interaction, overrideOptions)
   } catch (error: any) {
     await interaction
-      .reply(`:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`)
+      .reply(
+        `:fire: 發生未知錯誤，請稍後再試，如果情況還是沒有改善歡迎加入客服群組回報狀況。`,
+      )
       .catch(() => {})
 
     await channels['logger']
@@ -98,7 +105,9 @@ client.on(Events.GuildDelete, async (guild) => {
 })
 
 client.on(Events.ClientReady, async (client) => {
-  const loggerChannel = client.channels.cache.get(process.env['LOGGER_CHANNEL_ID'] || '')
+  const loggerChannel = client.channels.cache.get(
+    process.env['LOGGER_CHANNEL_ID'] || '',
+  )
   if (loggerChannel?.type !== ChannelType.GuildText) {
     console.log(`logger channel not found`)
     process.exit(-1)
@@ -108,7 +117,9 @@ client.on(Events.ClientReady, async (client) => {
   // register commands
   const rest = new REST({ version: '10' }).setToken(client.token)
   try {
-    await rest.put(Routes.applicationCommands(client.user.id), { body: commandData })
+    await rest.put(Routes.applicationCommands(client.user.id), {
+      body: commandData,
+    })
   } catch (error) {
     await loggerChannel.send(
       `\`${timeFormatter()}\` Register slash commands error\n\`\`\`${

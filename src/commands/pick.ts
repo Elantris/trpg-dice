@@ -9,7 +9,12 @@ const data: ApplicationCommandProps['data'] = [
     .setName('pick')
     .setDescription('隨機抽選訊息內容中的其中一個選項。')
     .setDMPermission(false)
-    .addStringOption((option) => option.setName('choices').setDescription('抽選選項，以空白分隔').setRequired(true)),
+    .addStringOption((option) =>
+      option
+        .setName('choices')
+        .setDescription('抽選選項，以空白分隔')
+        .setRequired(true),
+    ),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {
@@ -20,7 +25,11 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   if (request.isChatInputCommand()) {
-    options.choices = request.options.getString('choices', true).trim().split(/\s+/).filter(notEmpty)
+    options.choices = request.options
+      .getString('choices', true)
+      .trim()
+      .split(/\s+/)
+      .filter(notEmpty)
   } else {
     return
   }
@@ -51,12 +60,14 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
         fields: [
           {
             name: 'Choices',
-            value: options.choices.map((v, i) => `\`${i + 1}.\` ${v}`).join('\n'),
+            value: options.choices
+              .map((v, i) => `\`${i + 1}.\` ${v}`)
+              .join('\n'),
             inline: true,
           },
           {
             name: 'Picked',
-            value: `\`${pickedIndex + 1}.\` ${options.choices[pickedIndex]}`,
+            value: `\`${pickedIndex + 1}. ${options.choices[pickedIndex]}\``,
             inline: true,
           },
         ],
@@ -69,7 +80,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   })
 
   if (logMessage) {
-    await database.ref(`/logs/${request.guildId}/${responseMessage.id}`).set(logMessage.id)
+    await database
+      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .set(logMessage.id)
   }
 }
 

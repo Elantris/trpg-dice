@@ -124,7 +124,11 @@ const rollDice: (
   }
 
   EXPRESSION_REGEXP.lastIndex = 0
-  if (!EXPRESSION_REGEXP.test(expression.replace(/Math\.\w+\(/g, '(').replace(/[\(\)]+/gi, ''))) {
+  if (
+    !EXPRESSION_REGEXP.test(
+      expression.replace(/Math\.\w+\(/g, '(').replace(/[\(\)]+/gi, ''),
+    )
+  ) {
     throw new Error('INVALID_EXPRESSION')
   }
 
@@ -134,7 +138,9 @@ const rollDice: (
       .match(DICE_REGEXP)
       ?.map((content) => {
         let index = 0
-        const format = `0${content}`.toLocaleLowerCase().replace(/\d+/gi, () => ParameterSymbols[index++] ?? '')
+        const format = `0${content}`
+          .toLocaleLowerCase()
+          .replace(/\d+/gi, () => ParameterSymbols[index++] ?? '')
         if (DICE_METHODS[format]) {
           return {
             content,

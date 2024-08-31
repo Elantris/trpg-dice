@@ -10,7 +10,9 @@ const roll: (count: number, sides: number) => RollResult = (count, sides) => {
     throw new Error('INVALID_SIDES')
   }
 
-  const rolls: number[] = Array.from({ length: count }, () => randomInt(1, sides))
+  const rolls: number[] = Array.from({ length: count }, () =>
+    randomInt(1, sides),
+  )
 
   return {
     value: sum(rolls),

@@ -2,7 +2,11 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import roll from './roll'
 
-const keep: (count: number, sides: number, highDice: number) => RollResult = (count, sides, highDice) => {
+const keep: (count: number, sides: number, highDice: number) => RollResult = (
+  count,
+  sides,
+  highDice,
+) => {
   const { rolls } = roll(count, sides)
 
   return {

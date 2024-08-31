@@ -1,7 +1,11 @@
 import { RollResult } from '../utils/cache'
 import roll from './roll'
 
-const success: (count: number, sides: number, target: number) => RollResult = (count, sides, target) => {
+const success: (count: number, sides: number, target: number) => RollResult = (
+  count,
+  sides,
+  target,
+) => {
   if (target >= sides) {
     throw new Error('INVALID_DICE_EXPRESSION')
   }

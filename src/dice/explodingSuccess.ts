@@ -1,7 +1,11 @@
 import { RollResult } from '../utils/cache'
 import explode from './explode'
 
-const explodingSuccess: (count: number, sides: number, target: number) => RollResult = (count, sides, target) => {
+const explodingSuccess: (
+  count: number,
+  sides: number,
+  target: number,
+) => RollResult = (count, sides, target) => {
   const { rolls } = explode(count, sides)
 
   let value = 0

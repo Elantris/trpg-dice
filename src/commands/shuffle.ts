@@ -9,7 +9,12 @@ const data: ApplicationCommandProps['data'] = [
     .setName('shuffle')
     .setDescription('將一連串項目以隨機順序排列')
     .setDMPermission(false)
-    .addStringOption((option) => option.setName('items').setDescription('排列項目，以空白分隔').setRequired(true)),
+    .addStringOption((option) =>
+      option
+        .setName('items')
+        .setDescription('排列項目，以空白分隔')
+        .setRequired(true),
+    ),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {
@@ -20,7 +25,11 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   if (request.isChatInputCommand()) {
-    options.items = request.options.getString('items', true).trim().split(/\s+/).filter(notEmpty)
+    options.items = request.options
+      .getString('items', true)
+      .trim()
+      .split(/\s+/)
+      .filter(notEmpty)
   } else {
     return
   }
@@ -33,7 +42,10 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     return
   }
 
-  const orders: number[] = Array.from({ length: options.items.length }, (_, i) => i)
+  const orders: number[] = Array.from(
+    { length: options.items.length },
+    (_, i) => i,
+  )
   for (let i = orders.length - 1; i !== 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[orders[i], orders[j]] = [orders[j], orders[i]]
@@ -44,6 +56,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
       .map((order) => options.items[order])
       .join(' ')}`,
     fetchReply: true,
+    allowedMentions: {
+      parse: [],
+    },
   })
   const logMessage = await channels['logger'].send({
     embeds: [
@@ -57,12 +72,16 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
         fields: [
           {
             name: 'Input',
-            value: options.items.map((element, index) => `${index + 1}. \`${element}\``).join('\n'),
+            value: options.items
+              .map((element, index) => `\`${index + 1}. ${element}\``)
+              .join('\n'),
             inline: true,
           },
           {
             name: 'Result',
-            value: orders.map((order) => `${order + 1}. \`${options.items[order]}\``).join('\n'),
+            value: orders
+              .map((order) => `\`${order + 1}. ${options.items[order]}\``)
+              .join('\n'),
             inline: true,
           },
         ],
@@ -71,7 +90,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   })
 
   if (logMessage) {
-    await database.ref(`/logs/${request.guildId}/${responseMessage.id}`).set(logMessage.id)
+    await database
+      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .set(logMessage.id)
   }
 }
 

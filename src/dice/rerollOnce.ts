@@ -2,12 +2,12 @@ import { sum } from 'ramda'
 import { RollResult } from '../utils/cache'
 import randomInt from './randomInt'
 
-const rerollOnce: (count: number, sides: number, minimum: number, chooseHigher?: boolean) => RollResult = (
-  count,
-  sides,
-  minimum,
-  chooseHigher = false,
-) => {
+const rerollOnce: (
+  count: number,
+  sides: number,
+  minimum: number,
+  chooseHigher?: boolean,
+) => RollResult = (count, sides, minimum, chooseHigher = false) => {
   if (count > 20) {
     throw new Error('INVALID_COUNT')
   }

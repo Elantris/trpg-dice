@@ -17,7 +17,10 @@ export type ApplicationCommandProps = {
     | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
     | ContextMenuCommandBuilder
   )[]
-  execute: (request: Interaction, overrideOptions?: Record<string, any>) => Promise<void>
+  execute: (
+    request: Interaction,
+    overrideOptions?: Record<string, any>,
+  ) => Promise<void>
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>
 }
 export type RollResult = {
@@ -28,7 +31,8 @@ export type RollResult = {
 admin.initializeApp({
   credential: admin.credential.cert({
     projectId: 'trpg-dice-19e3e',
-    clientEmail: 'firebase-adminsdk-kf7kg@trpg-dice-19e3e.iam.gserviceaccount.com',
+    clientEmail:
+      'firebase-adminsdk-kf7kg@trpg-dice-19e3e.iam.gserviceaccount.com',
     privateKey: process.env['PRIVATE_KEY'],
   }),
   databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
@@ -38,7 +42,10 @@ export const database = admin.database()
 export const channels: { [key in string]: TextChannel } = {}
 
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
-export const EXPRESSION_REGEXP = new RegExp(`^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`, 'gi') // [+-*/,] [X.Y | XdYaZbW]
+export const EXPRESSION_REGEXP = new RegExp(
+  `^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`,
+  'gi',
+) // [+-*/,] [X.Y | XdYaZbW]
 export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_TIMES: '算式重複計算次數限 1 ~ 10 次',
   INVALID_EXPRESSION: '無效的算式',

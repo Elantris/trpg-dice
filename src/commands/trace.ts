@@ -1,4 +1,8 @@
-import { ApplicationCommandType, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+  ApplicationCommandType,
+  ContextMenuCommandBuilder,
+  SlashCommandBuilder,
+} from 'discord.js'
 import { ApplicationCommandProps, channels, database } from '../utils/cache'
 
 const data: ApplicationCommandProps['data'] = [
@@ -6,8 +10,13 @@ const data: ApplicationCommandProps['data'] = [
     .setName('trace')
     .setDescription('查看一則指令結果的詳細資訊')
     .setDMPermission(false)
-    .addStringOption((option) => option.setName('target').setDescription('訊息連結').setRequired(true)),
-  new ContextMenuCommandBuilder().setName('trace').setType(ApplicationCommandType.Message).setDMPermission(false),
+    .addStringOption((option) =>
+      option.setName('target').setDescription('訊息連結').setRequired(true),
+    ),
+  new ContextMenuCommandBuilder()
+    .setName('trace')
+    .setType(ApplicationCommandType.Message)
+    .setDMPermission(false),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {
@@ -43,7 +52,11 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     return
   }
 
-  const logMessageId = (await database.ref(`/logs/${request.guildId}/${options.targetMessageId}`).once('value')).val()
+  const logMessageId = (
+    await database
+      .ref(`/logs/${request.guildId}/${options.targetMessageId}`)
+      .once('value')
+  ).val()
   if (!logMessageId) {
     await request.reply({
       content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,
@@ -52,7 +65,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     return
   }
 
-  const logMessage = await channels['logger'].messages.fetch(logMessageId).catch(() => null)
+  const logMessage = await channels['logger'].messages
+    .fetch(logMessageId)
+    .catch(() => null)
   if (!logMessage) {
     await request.reply({
       content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,

@@ -2,7 +2,12 @@ import { ChannelType, Client, SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import randomInt from '../dice/randomInt'
-import { ApplicationCommandProps, channels, database, lucks } from '../utils/cache'
+import {
+  ApplicationCommandProps,
+  channels,
+  database,
+  lucks,
+} from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 
 const data: ApplicationCommandProps['data'] = [
@@ -13,14 +18,18 @@ const data: ApplicationCommandProps['data'] = [
       command
         .setName('pick')
         .setDescription('抽選今日運勢')
-        .addStringOption((option) => option.setName('pool').setDescription('運勢池').setAutocomplete(true)),
+        .addStringOption((option) =>
+          option.setName('pool').setDescription('運勢池').setAutocomplete(true),
+        ),
     )
     .addSubcommand((command) =>
       command
         .setName('guild')
         .setDescription('查看伺服器運勢')
         .addStringOption((option) =>
-          option.setName('date').setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
+          option
+            .setName('date')
+            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
         ),
     )
     .addSubcommand((command) =>
@@ -28,7 +37,9 @@ const data: ApplicationCommandProps['data'] = [
         .setName('reset')
         .setDescription('重置伺服器運勢（限管理員）')
         .addStringOption((option) =>
-          option.setName('date').setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
+          option
+            .setName('date')
+            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
         ),
     )
     .setDMPermission(false),
@@ -138,7 +149,9 @@ const cachedGuildPools: {
   }[]
 } = {}
 
-const autocomplete: ApplicationCommandProps['autocomplete'] = async (interaction) => {
+const autocomplete: ApplicationCommandProps['autocomplete'] = async (
+  interaction,
+) => {
   if (!interaction.guildId) {
     !interaction.respond([])
     return
@@ -151,8 +164,14 @@ const autocomplete: ApplicationCommandProps['autocomplete'] = async (interaction
       cachedGuildPools[interaction.guildId] = []
 
       for (const poolId in pools) {
-        if (!pools[poolId].guildIds || pools[poolId].guildIds.includes(interaction.guildId)) {
-          cachedGuildPools[interaction.guildId].push({ name: pools[poolId].name, value: poolId })
+        if (
+          !pools[poolId].guildIds ||
+          pools[poolId].guildIds.includes(interaction.guildId)
+        ) {
+          cachedGuildPools[interaction.guildId].push({
+            name: pools[poolId].name,
+            value: poolId,
+          })
         }
       }
     }
@@ -174,9 +193,12 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   if (request.isChatInputCommand()) {
-    const todayDate = DateTime.fromMillis(request.createdTimestamp).toFormat('yyyy-MM-dd')
+    const todayDate = DateTime.fromMillis(request.createdTimestamp).toFormat(
+      'yyyy-MM-dd',
+    )
 
-    options.subcommand = request.options.getSubcommand() as typeof options.subcommand
+    options.subcommand =
+      request.options.getSubcommand() as typeof options.subcommand
     switch (options.subcommand) {
       case 'pick':
         options.pool = request.options.getString('pool') || 'default'
@@ -218,7 +240,10 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
 
   // handle reset lucks
   if (options.subcommand === 'reset') {
-    if (member.id !== '156935214780776448' && !member.permissions.has('Administrator')) {
+    if (
+      member.id !== '156935214780776448' &&
+      !member.permissions.has('Administrator')
+    ) {
       await request.reply({
         content: `:lock: 你沒有權限使用此指令`,
         ephemeral: true,
@@ -258,9 +283,11 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     lucks[guildId] = {}
   }
   if (!lucks[guildId][options.date]) {
-    await database.ref(`/lucks/${guildId}/${options.date}`).once('value', (snapshot) => {
-      lucks[guildId][options.date] = snapshot.val()
-    })
+    await database
+      .ref(`/lucks/${guildId}/${options.date}`)
+      .once('value', (snapshot) => {
+        lucks[guildId][options.date] = snapshot.val()
+      })
   }
   if (!lucks[guildId][options.date]) {
     delete lucks[guildId]
@@ -324,7 +351,10 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   // check exist
-  if (process.env['NODE_ENV'] !== 'development' && lucks[guildId][options.date][request.user.id]) {
+  if (
+    process.env['NODE_ENV'] !== 'development' &&
+    lucks[guildId][options.date][request.user.id]
+  ) {
     await request.reply({
       content: ':x: 你今天已經抽過運勢了，請明天再來',
       ephemeral: true,
@@ -350,7 +380,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   // save data
   const userData = `${request.createdTimestamp};${pool.name};${resultItem.text}`
   lucks[guildId][options.date][request.user.id] = userData
-  await database.ref(`/lucks/${guildId}/${options.date}/${request.user.id}`).set(userData)
+  await database
+    .ref(`/lucks/${guildId}/${options.date}/${request.user.id}`)
+    .set(userData)
 
   // response
   const responseMessage = await request.reply({
@@ -374,7 +406,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     ],
   })
   if (logMessage) {
-    await database.ref(`/logs/${request.guildId}/${responseMessage.id}`).set(logMessage.id)
+    await database
+      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .set(logMessage.id)
   }
 }
 
