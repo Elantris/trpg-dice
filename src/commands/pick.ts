@@ -8,7 +8,6 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('pick')
     .setDescription('隨機抽選訊息內容中的其中一個選項。')
-    .setDMPermission(false)
     .addStringOption((option) =>
       option
         .setName('choices')
@@ -45,7 +44,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   const pickedIndex = Math.floor(Math.random() * options.choices.length)
 
   const responseMessage = await request.reply({
-    content: `:game_die: Pick(**${options.choices.length}**): ${pickedIndex + 1}\n${options.choices[pickedIndex]}`,
+    content: `:game_die: Pick(**${options.choices.length}**):\n${options.choices[pickedIndex]}`,
     fetchReply: true,
   })
   const logMessage = await channels['logger'].send({
@@ -61,13 +60,13 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
           {
             name: 'Choices',
             value: options.choices
-              .map((v, i) => `\`${i + 1}.\` ${v}`)
+              .map((v, i) => `\`${i + 1},\` ${v}`)
               .join('\n'),
             inline: true,
           },
           {
             name: 'Picked',
-            value: `\`${pickedIndex + 1}. ${options.choices[pickedIndex]}\``,
+            value: `\`${pickedIndex + 1},\` ${options.choices[pickedIndex]}`,
             inline: true,
           },
         ],

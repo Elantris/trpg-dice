@@ -9,14 +9,12 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('trace')
     .setDescription('查看一則指令結果的詳細資訊')
-    .setDMPermission(false)
     .addStringOption((option) =>
       option.setName('target').setDescription('訊息連結').setRequired(true),
     ),
   new ContextMenuCommandBuilder()
     .setName('trace')
-    .setType(ApplicationCommandType.Message)
-    .setDMPermission(false),
+    .setType(ApplicationCommandType.Message),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (request) => {

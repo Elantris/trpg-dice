@@ -4,8 +4,7 @@ import { ApplicationCommandProps } from '../utils/cache'
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('help')
-    .setDescription('查看說明文件與開發群組連結')
-    .setDMPermission(false),
+    .setDescription('查看說明文件與開發群組連結'),
 ]
 const content = `
 :game_die: eeDice 擲骰機器人

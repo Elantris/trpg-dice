@@ -8,7 +8,6 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('shuffle')
     .setDescription('將一連串項目以隨機順序排列')
-    .setDMPermission(false)
     .addStringOption((option) =>
       option
         .setName('items')
@@ -73,14 +72,14 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
           {
             name: 'Input',
             value: options.items
-              .map((element, index) => `\`${index + 1}. ${element}\``)
+              .map((element, index) => `\`${index + 1},\` ${element}`)
               .join('\n'),
             inline: true,
           },
           {
             name: 'Result',
             value: orders
-              .map((order) => `\`${order + 1}. ${options.items[order]}\``)
+              .map((order) => `\`${order + 1},\` ${options.items[order]}`)
               .join('\n'),
             inline: true,
           },

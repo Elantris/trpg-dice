@@ -41,11 +41,12 @@ const data: ApplicationCommandProps['data'] = [
             .setName('date')
             .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
         ),
-    )
-    .setDMPermission(false),
+    ),
 ]
 
 type PoolProps = {
+  id: string
+  sort: number
   name: string
   guildIds?: string[]
   items: {
@@ -54,10 +55,10 @@ type PoolProps = {
   }[]
 }
 
-const pools: {
-  [poolId: string]: PoolProps
-} = {
-  default: {
+const pools: PoolProps[] = [
+  {
+    id: 'default',
+    sort: 0,
     name: '通用',
     items: [
       { weight: 100, text: ':nauseated_face: 大凶' },
@@ -69,7 +70,9 @@ const pools: {
       { weight: 100, text: ':confetti_ball: 大吉' },
     ],
   },
-  twelve: {
+  {
+    id: 'twelve',
+    sort: 1,
     name: '12 段運勢',
     items: [
       { weight: 100, text: ':nauseated_face: 大凶' },
@@ -81,12 +84,14 @@ const pools: {
       { weight: 100, text: ':red_circle: 末吉' },
       { weight: 100, text: ':red_circle: 半吉' },
       { weight: 100, text: ':red_circle: 小吉' },
-      { weight: 100, text: ':red_circle: 中吉' },
+      { weight: 100, text: ':tada: 中吉' },
       { weight: 100, text: ':tada: 吉' },
       { weight: 100, text: ':confetti_ball: 大吉' },
     ],
   },
-  asakusa: {
+  {
+    id: 'asakusa',
+    sort: 2,
     name: '淺草籤運勢',
     items: [
       { weight: 30, text: ':green_circle: 凶' },
@@ -98,7 +103,7 @@ const pools: {
       { weight: 17, text: ':confetti_ball: 大吉' },
     ],
   },
-}
+]
 
 export const loadPool = async (client: Client<true>) => {
   const channel = client.channels.cache.get('1256444851042517013')
@@ -107,18 +112,21 @@ export const loadPool = async (client: Client<true>) => {
     return
   }
 
+  const pingMessage = await channel.send('ping')
+  await pingMessage.delete()
+
   const messages = await channel.messages.fetch({
     limit: 100,
   })
 
-  messages.forEach((message) => {
+  messages.reverse().forEach((message) => {
     const data = message.content.split('\n')
     /*
       id,name
       guildId,guildId
       weight,text
     */
-    const [id, name] = data[0].split(',')
+    const [sort, id, name] = data[0].split(',')
     const guildIds = data[1].split(',').filter((v) => v)
     const items = data.slice(2).map((v) => {
       const [weight, text] = v.split(',')
@@ -128,18 +136,18 @@ export const loadPool = async (client: Client<true>) => {
       }
     })
 
-    if (guildIds.length === 0) {
-      return
-    }
+    guildIds.push('351346677011054592', '619943924735148042')
 
-    const pool: PoolProps = {
+    pools.push({
+      id,
+      sort: Number(sort),
       name,
       guildIds,
       items,
-    }
-
-    pools[id] = pool
+    })
   })
+
+  pools.sort((a, b) => a.sort - b.sort)
 }
 
 const cachedGuildPools: {
@@ -160,23 +168,17 @@ const autocomplete: ApplicationCommandProps['autocomplete'] = async (
   const subcommand = interaction.options.getSubcommand()
 
   if (subcommand === 'pick') {
-    if (!cachedGuildPools[interaction.guildId]) {
-      cachedGuildPools[interaction.guildId] = []
-
-      for (const poolId in pools) {
-        if (
-          !pools[poolId].guildIds ||
-          pools[poolId].guildIds.includes(interaction.guildId)
-        ) {
-          cachedGuildPools[interaction.guildId].push({
-            name: pools[poolId].name,
-            value: poolId,
-          })
-        }
-      }
+    const guildId = interaction.guildId
+    if (!cachedGuildPools[guildId]) {
+      cachedGuildPools[guildId] = pools
+        .filter((pool) => !pool.guildIds || pool.guildIds.includes(guildId))
+        .map((pool) => ({
+          name: pool.name,
+          value: pool.id,
+        }))
     }
 
-    await interaction.respond(cachedGuildPools[interaction.guildId])
+    await interaction.respond(cachedGuildPools[guildId])
     return
   }
 }
@@ -203,7 +205,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
       case 'pick':
         options.pool = request.options.getString('pool') || 'default'
 
-        if (!pools[options.pool]) {
+        if (!pools.find((pool) => pool.id === options.pool)) {
           await request.reply({
             content: `:x: 運勢池 \`${options.pool}\` 不存在`,
             ephemeral: true,
@@ -266,7 +268,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
             icon_url: request.user.displayAvatarURL(),
             name: request.user.tag,
           },
-          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: ${options.subcommand}\nDate: ${options.date}`,
+          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: reset\nDate: ${options.date}`,
           timestamp: request.createdAt.toISOString(),
           footer: {
             text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
@@ -285,7 +287,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   if (!lucks[guildId][options.date]) {
     await database
       .ref(`/lucks/${guildId}/${options.date}`)
-      .once('value', (snapshot) => {
+      .once('value', (snapshot: any) => {
         lucks[guildId][options.date] = snapshot.val()
       })
   }
@@ -338,7 +340,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
             icon_url: request.user.displayAvatarURL(),
             name: request.user.tag,
           },
-          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: ${options.subcommand}\nDate: ${options.date}`,
+          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: guild\nDate: ${options.date}`,
           timestamp: request.createdAt.toISOString(),
           footer: {
             text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
@@ -363,7 +365,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   // random luck
-  const pool = pools[options.pool]
+  const pool = pools.find((pool) => pool.id === options.pool)!
   const totalWeights = pool.items.reduce((prev, item) => prev + item.weight, 0)
   const playerLuck = randomInt(1, totalWeights)
 
@@ -386,7 +388,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
 
   // response
   const responseMessage = await request.reply({
-    content: `:game_die: **${member.displayName}** 今日運勢（${pools[options.pool].name}）：${resultItem.text}`,
+    content: `:game_die: **${member.displayName}** 今日運勢（${pool.name}）：${resultItem.text}`,
     fetchReply: true,
   })
   const logMessage = await channels['logger'].send({

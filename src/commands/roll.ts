@@ -13,7 +13,6 @@ const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
     .setName('roll')
     .setDescription('計算一個四則運算的算式，並將其中的骰子語法替換成擲骰結果')
-    .setDMPermission(false)
     .addStringOption((option) =>
       option
         .setName('expression')
@@ -25,28 +24,22 @@ const data: ApplicationCommandProps['data'] = [
     ),
   new SlashCommandBuilder()
     .setName('d4')
-    .setDescription('丟擲一顆 4 面骰，並顯示結果')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆 4 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d6')
-    .setDescription('丟擲一顆 6 面骰，並顯示結果')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆 6 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d8')
-    .setDescription('丟擲一顆 8 面骰，並顯示結果')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆 8 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d12')
-    .setDescription('丟擲一顆 12 面骰，並顯示結果')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆 12 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d20')
-    .setDescription('丟擲一顆 20 面骰，並顯示結果')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆 20 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d100')
-    .setDescription('丟擲一顆公正骰子，總之它有 100 個面，顯示面朝上的數字')
-    .setDMPermission(false),
+    .setDescription('丟擲一顆公正骰子，總之它有 100 個面，顯示面朝上的數字'),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (
