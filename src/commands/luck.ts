@@ -1,4 +1,4 @@
-import { ChannelType, Client, SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import randomInt from '../dice/randomInt'
@@ -104,51 +104,6 @@ const pools: PoolProps[] = [
     ],
   },
 ]
-
-export const loadPool = async (client: Client<true>) => {
-  const channel = client.channels.cache.get('1256444851042517013')
-  if (channel?.type !== ChannelType.PublicThread) {
-    console.error('Failed to load luck pool.')
-    return
-  }
-
-  const pingMessage = await channel.send('ping')
-  await pingMessage.delete()
-
-  const messages = await channel.messages.fetch({
-    limit: 100,
-  })
-
-  messages.reverse().forEach((message) => {
-    const data = message.content.split('\n')
-    /*
-      id,name
-      guildId,guildId
-      weight,text
-    */
-    const [sort, id, name] = data[0].split(',')
-    const guildIds = data[1].split(',').filter((v) => v)
-    const items = data.slice(2).map((v) => {
-      const [weight, text] = v.split(',')
-      return {
-        weight: Number(weight),
-        text: text,
-      }
-    })
-
-    guildIds.push('351346677011054592', '619943924735148042')
-
-    pools.push({
-      id,
-      sort: Number(sort),
-      name,
-      guildIds,
-      items,
-    })
-  })
-
-  pools.sort((a, b) => a.sort - b.sort)
-}
 
 const cachedGuildPools: {
   [guildId: string]: {

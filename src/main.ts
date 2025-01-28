@@ -14,7 +14,6 @@ import {
 import { readdirSync } from 'fs'
 import OpenColor from 'open-color'
 import { join } from 'path'
-import { loadPool } from './commands/luck'
 import { ApplicationCommandProps, channels, database } from './utils/cache'
 import colorFormatter from './utils/colorFormatter'
 import timeFormatter from './utils/timeFormatter'
@@ -127,9 +126,6 @@ client.on(Events.ClientReady, async (client) => {
       }\`\`\``,
     )
   }
-
-  // load luck pool
-  await loadPool(client)
 
   // bot client ready
   await loggerChannel.send(`\`${timeFormatter()}\` ${client.user.tag}`)
