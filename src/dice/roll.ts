@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { RollResult } from '../utils/cache'
-import randomInt from './randomInt'
+import { type RollResult } from '../utils/cache'
+import randInt from '../utils/randInt'
 
 const roll: (count: number, sides: number) => RollResult = (count, sides) => {
   if (count > 20) {
@@ -10,9 +10,7 @@ const roll: (count: number, sides: number) => RollResult = (count, sides) => {
     throw new Error('INVALID_SIDES')
   }
 
-  const rolls: number[] = Array.from({ length: count }, () =>
-    randomInt(1, sides),
-  )
+  const rolls: number[] = Array.from({ length: count }, () => randInt(1, sides))
 
   return {
     value: sum(rolls),

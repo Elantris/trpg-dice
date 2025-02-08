@@ -11,7 +11,7 @@ import roll from '../dice/roll'
 import rollWithLower from '../dice/rollWithLower'
 import rollWithUpper from '../dice/rollWithUpper'
 import success from '../dice/success'
-import { DICE_REGEXP, EXPRESSION_REGEXP, RollResult } from './cache'
+import { DICE_REGEXP, EXPRESSION_REGEXP, type RollResult } from './cache'
 import notEmpty from './notEmpty'
 
 const ParameterSymbols = ['X', 'Y', 'Z', 'W']

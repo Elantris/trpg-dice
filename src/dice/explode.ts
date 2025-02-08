@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { RollResult } from '../utils/cache'
-import randomInt from './randomInt'
+import { type RollResult } from '../utils/cache'
+import randInt from '../utils/randInt'
 
 const explode: (count: number, sides: number) => RollResult = (
   count,
@@ -16,7 +16,7 @@ const explode: (count: number, sides: number) => RollResult = (
   const rolls: number[] = []
   let tmp = 0
   while (tmp < count) {
-    const roll = randomInt(1, sides)
+    const roll = randInt(1, sides)
     if (roll < sides) {
       tmp += 1
     }

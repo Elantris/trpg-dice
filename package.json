@@ -2,14 +2,14 @@
   "name": "trpg-dice",
   "description": "",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/main.ts",
   "scripts": {
     "start": "node build/main.js",
     "dev": "NODE_ENV=development bun run src/main.ts",
     "format": "prettier --write src",
     "build": "rm -rf ./build/* && ./node_modules/.bin/tsc",
-    "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000 && pm2 monit",
-    "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice && pm2 monit"
+    "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000",
+    "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@firebase/app-types": "^0.9.3",
     "@types/luxon": "^3.4.2",
-    "@types/node": "^22.12.0",
+    "@types/node": "^22.13.1",
     "@types/ramda": "^0.30.2",
     "@types/ws": "^8.5.14",
     "discord.js": "^14.17.3",

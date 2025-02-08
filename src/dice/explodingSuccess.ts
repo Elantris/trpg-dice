@@ -1,4 +1,4 @@
-import { RollResult } from '../utils/cache'
+import { type RollResult } from '../utils/cache'
 import explode from './explode'
 
 const explodingSuccess: (

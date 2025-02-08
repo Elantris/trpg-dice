@@ -1,33 +1,36 @@
 import {
-  AutocompleteInteraction,
+  ButtonInteraction,
+  ChatInputCommandInteraction,
   ContextMenuCommandBuilder,
-  Interaction,
-  SlashCommandBuilder,
-  SlashCommandOptionsOnlyBuilder,
-  SlashCommandSubcommandsOnlyBuilder,
+  InteractionCallbackResponse,
   TextChannel,
+  type Interaction,
+  type SlashCommandOptionsOnlyBuilder,
+  type SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js'
 import admin from 'firebase-admin'
+import coinFlipping from '../game/coinFlipping'
+import diceOddEven from '../game/diceOddEven'
+import slotMachine from '../game/slotMachine'
+import randInt from './randInt'
 
+// discord
+export const channels: {
+  [key in string]: TextChannel
+} = {}
 export type ApplicationCommandProps = {
   data: (
-    | SlashCommandBuilder
     | SlashCommandOptionsOnlyBuilder
     | SlashCommandSubcommandsOnlyBuilder
-    | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>
     | ContextMenuCommandBuilder
   )[]
   execute: (
-    request: Interaction,
+    interaction: Interaction,
     overrideOptions?: Record<string, any>,
   ) => Promise<void>
-  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>
-}
-export type RollResult = {
-  value: number
-  rolls: number[]
 }
 
+// Firebase
 admin.initializeApp({
   credential: admin.credential.cert({
     projectId: 'trpg-dice-19e3e',
@@ -39,8 +42,11 @@ admin.initializeApp({
 })
 export const database = admin.database()
 
-export const channels: { [key in string]: TextChannel } = {}
-
+// command roll
+export type RollResult = {
+  value: number
+  rolls: number[]
+}
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
 export const EXPRESSION_REGEXP = new RegExp(
   `^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`,
@@ -56,10 +62,138 @@ export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_DICE_EXPRESSION: '骰子語法錯誤',
 }
 
-export const lucks: {
-  [guildId: string]: {
-    [date: string]: {
-      [userId: string]: string
+// command luck
+
+export const guildLucks: {
+  [GuildID in string]?: {
+    [Date in string]?: {
+      [UserID in string]?: string
     }
   }
 } = {}
+
+// command game
+export const GameConfigNames = {
+  MessageRewards: '文字訊息獎勵',
+  VoiceRewards: '接聽語音獎勵',
+}
+
+export const GameNames = {
+  coinFlipping: '硬幣猜正反',
+  diceOddEven: '骰子猜單雙',
+  slotMachine: '拉霸機',
+}
+
+export type GameProps = {
+  create: (
+    interaction: ChatInputCommandInteraction,
+  ) => Promise<InteractionCallbackResponse>
+  execute: (interaction: ButtonInteraction) => Promise<{
+    content: string
+    luck: number | string
+    result: string
+    rewardCoins: number
+  } | void>
+}
+
+export const Games: {
+  [key in keyof typeof GameNames]: GameProps
+} = {
+  coinFlipping,
+  diceOddEven,
+  slotMachine,
+}
+
+export const botData: {
+  readyAt: number
+  message: {
+    [GuildID in string]?: {
+      [MemberID in string]?: number
+    }
+  }
+  voice: {
+    [GuildID in string]?: {
+      [MemberID in string]?: number
+    }
+  }
+} = {
+  readyAt: Date.now(),
+  message: {},
+  voice: {},
+}
+
+export const guildConfigs: {
+  [GuildID in string]?: {
+    [key in keyof typeof GameConfigNames]?: {
+      min: number
+      max: number
+    }
+  }
+} = {}
+
+export const guildMemberCoins: {
+  [GuildID in string]?: {
+    [MemberID in string]?: number
+  }
+} = {}
+export const updatedMemberCoins: {
+  [GuildID in string]?: {
+    [MemberID in string]?: number
+  }
+} = {}
+
+export const getMemberCoins = async (
+  guildId: string,
+  memberId: string,
+  now = Date.now(),
+) => {
+  if (!guildMemberCoins[guildId]) {
+    guildMemberCoins[guildId] = {}
+  }
+
+  if (typeof guildMemberCoins[guildId][memberId] === 'undefined') {
+    setMemberCoins(
+      guildId,
+      memberId,
+      (
+        await database.ref(`/coins/${guildId}/${memberId}`).once('value')
+      ).val() || 0,
+    )
+  }
+
+  if (
+    botData.voice[guildId]?.[memberId] &&
+    guildConfigs[guildId]?.VoiceRewards
+  ) {
+    const minutes = Math.floor((now - botData.voice[guildId][memberId]) / 60000)
+    botData.voice[guildId][memberId] += minutes * 60000
+    setMemberCoins(
+      guildId,
+      memberId,
+      guildMemberCoins[guildId][memberId]! +
+        randInt(
+          guildConfigs[guildId].VoiceRewards.min,
+          guildConfigs[guildId].VoiceRewards.max,
+        ) *
+          minutes,
+    )
+  }
+
+  return guildMemberCoins[guildId][memberId] || 0
+}
+
+export const setMemberCoins = (
+  guildId: string,
+  memberId: string,
+  coins: number,
+) => {
+  if (!guildMemberCoins[guildId]) {
+    guildMemberCoins[guildId] = {}
+  }
+  guildMemberCoins[guildId][memberId] = coins
+
+  if (!updatedMemberCoins[guildId]) {
+    updatedMemberCoins[guildId] = {}
+  }
+  updatedMemberCoins[guildId][memberId] = coins
+}

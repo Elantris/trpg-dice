@@ -1,5 +1,5 @@
 import { sum } from 'ramda'
-import { RollResult } from '../utils/cache'
+import { type RollResult } from '../utils/cache'
 import roll from './roll'
 
 const keep: (count: number, sides: number, highDice: number) => RollResult = (

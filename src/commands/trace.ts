@@ -1,9 +1,14 @@
 import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
+  MessageFlags,
   SlashCommandBuilder,
 } from 'discord.js'
-import { ApplicationCommandProps, channels, database } from '../utils/cache'
+import {
+  channels,
+  database,
+  type ApplicationCommandProps,
+} from '../utils/cache'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -17,7 +22,7 @@ const data: ApplicationCommandProps['data'] = [
     .setType(ApplicationCommandType.Message),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async (request) => {
+const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   const options: {
     search: string
     targetMessageId: string
@@ -26,10 +31,10 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     targetMessageId: '',
   }
 
-  if (request.isChatInputCommand()) {
-    options.search = request.options.getString('target', true)
-  } else if (request.isMessageContextMenuCommand()) {
-    options.search = request.targetMessage.url
+  if (interaction.isChatInputCommand()) {
+    options.search = interaction.options.getString('target', true)
+  } else if (interaction.isMessageContextMenuCommand()) {
+    options.search = interaction.targetMessage.url
   } else {
     return
   }
@@ -42,23 +47,26 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     // channel id - message id
     const [, messageId] = options.search.split('-')
     options.targetMessageId = messageId
+  } else if (/^\d+$/.test(options.search)) {
+    // message id
+    options.targetMessageId = options.search
   } else {
-    await request.reply({
+    await interaction.reply({
       content: ':x: 未知的訊息格式',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
 
   const logMessageId = (
     await database
-      .ref(`/logs/${request.guildId}/${options.targetMessageId}`)
+      .ref(`/logs/${interaction.guildId}/${options.targetMessageId}`)
       .once('value')
   ).val()
   if (!logMessageId) {
-    await request.reply({
+    await interaction.reply({
       content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
@@ -67,14 +75,14 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     .fetch(logMessageId)
     .catch(() => null)
   if (!logMessage) {
-    await request.reply({
+    await interaction.reply({
       content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
 
-  await request.reply({
+  await interaction.reply({
     content: `:mag_right: \`${options.targetMessageId}\``,
     embeds: logMessage.embeds,
   })

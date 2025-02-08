@@ -1,10 +1,10 @@
 import { Embed, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
 import {
-  ApplicationCommandProps,
   ERROR_DESCRIPTIONS,
   channels,
   database,
+  type ApplicationCommandProps,
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import rollDice from '../utils/rollDice'
@@ -39,11 +39,13 @@ const data: ApplicationCommandProps['data'] = [
     .setDescription('丟擲一顆 20 面骰，並顯示結果'),
   new SlashCommandBuilder()
     .setName('d100')
-    .setDescription('丟擲一顆公正骰子，總之它有 100 個面，顯示面朝上的數字'),
+    .setDescription(
+      '丟擲兩顆 10 面骰，分別代表十位數、個位數，顯示 1~100 的結果',
+    ),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (
-  request,
+  interaction,
   overrideOptions,
 ) => {
   const options: {
@@ -54,12 +56,15 @@ const execute: ApplicationCommandProps['execute'] = async (
     times: 1,
   }
 
-  if (request.isChatInputCommand()) {
+  if (interaction.isChatInputCommand()) {
     options.times =
-      overrideOptions?.['times'] ?? request.options.getInteger('times') ?? 1
-    options.expression =
+      overrideOptions?.['times'] ?? interaction.options.getInteger('times') ?? 1
+    options.expression = (
       overrideOptions?.['expression'] ??
-      request.options.getString('expression', true).replace(/\s+/g, '').trim()
+      interaction.options.getString('expression', true)
+    )
+      .replace(/\s+/g, '')
+      .trim()
   } else {
     return
   }
@@ -104,13 +109,14 @@ const execute: ApplicationCommandProps['execute'] = async (
     commandError = error
   }
 
-  const responseMessage = await request.reply({
+  const response = await interaction.reply({
     content: commandError
       ? `:x: ${ERROR_DESCRIPTIONS[commandError.message] || ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`
       : responseContents.join('\n'),
     ephemeral: !!commandError,
-    fetchReply: true,
+    withResponse: true,
   })
+  const responseMessage = response.resource?.message
   const logMessage = await channels['logger'].send({
     embeds: [
       {
@@ -118,10 +124,10 @@ const execute: ApplicationCommandProps['execute'] = async (
           commandError ? OpenColor.red[5] : OpenColor.violet[5],
         ),
         author: {
-          icon_url: request.user.displayAvatarURL(),
-          name: request.user.tag,
+          icon_url: interaction.user.displayAvatarURL(),
+          name: interaction.user.tag,
         },
-        description: `Message: [Link](${responseMessage.url})\nExpression: \`${options.expression}\`\nTimes: ${options.times}`,
+        description: `Message: [Link](${responseMessage?.url})\nExpression: \`${options.expression}\`\nTimes: ${options.times}`,
         fields: commandError
           ? [
               {
@@ -130,17 +136,16 @@ const execute: ApplicationCommandProps['execute'] = async (
               },
             ]
           : logFields,
-        timestamp: request.createdAt.toISOString(),
+        timestamp: interaction.createdAt.toISOString(),
         footer: {
-          text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
+          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
         },
       },
     ],
   })
-
-  if (logMessage && logMessage.embeds?.[0]?.fields?.length) {
+  if (responseMessage && logMessage.embeds?.[0]?.fields?.length) {
     await database
-      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
       .set(logMessage.id)
   }
 }

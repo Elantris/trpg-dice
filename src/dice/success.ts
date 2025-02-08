@@ -1,4 +1,4 @@
-import { RollResult } from '../utils/cache'
+import { type RollResult } from '../utils/cache'
 import roll from './roll'
 
 const success: (count: number, sides: number, target: number) => RollResult = (

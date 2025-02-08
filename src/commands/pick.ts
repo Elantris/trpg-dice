@@ -1,6 +1,10 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { ApplicationCommandProps, channels, database } from '../utils/cache'
+import {
+  channels,
+  database,
+  type ApplicationCommandProps,
+} from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -16,15 +20,15 @@ const data: ApplicationCommandProps['data'] = [
     ),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async (request) => {
+const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   const options: {
     choices: string[]
   } = {
     choices: [],
   }
 
-  if (request.isChatInputCommand()) {
-    options.choices = request.options
+  if (interaction.isChatInputCommand()) {
+    options.choices = interaction.options
       .getString('choices', true)
       .trim()
       .split(/\s+/)
@@ -34,28 +38,29 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   if (options.choices.length < 2) {
-    await request.reply({
+    await interaction.reply({
       content: ':x: 抽選選項需要至少兩個',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
 
   const pickedIndex = Math.floor(Math.random() * options.choices.length)
 
-  const responseMessage = await request.reply({
+  const response = await interaction.reply({
     content: `:game_die: Pick(**${options.choices.length}**):\n${options.choices[pickedIndex]}`,
-    fetchReply: true,
+    withResponse: true,
   })
+  const responseMessage = response.resource?.message
   const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(OpenColor.cyan[5]),
         author: {
-          icon_url: request.user.displayAvatarURL(),
-          name: request.user.tag,
+          icon_url: interaction.user.displayAvatarURL(),
+          name: interaction.user.tag,
         },
-        description: `Message: [Link](${responseMessage.url})\nChoices: ${options.choices.length}`,
+        description: `Message: [Link](${responseMessage?.url})\nChoices: ${options.choices.length}`,
         fields: [
           {
             name: 'Choices',
@@ -70,17 +75,16 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
             inline: true,
           },
         ],
-        timestamp: request.createdAt.toISOString(),
+        timestamp: interaction.createdAt.toISOString(),
         footer: {
-          text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
+          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
         },
       },
     ],
   })
-
-  if (logMessage) {
+  if (responseMessage) {
     await database
-      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
       .set(logMessage.id)
   }
 }

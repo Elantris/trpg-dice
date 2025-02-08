@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { RollResult } from '../utils/cache'
-import randomInt from './randomInt'
+import { type RollResult } from '../utils/cache'
+import randInt from '../utils/randInt'
 
 const reroll: (count: number, sides: number, minimum: number) => RollResult = (
   count,
@@ -20,7 +20,7 @@ const reroll: (count: number, sides: number, minimum: number) => RollResult = (
   const rolls: number[] = []
   const results: number[] = []
   while (results.length < count) {
-    const roll = randomInt(1, sides)
+    const roll = randInt(1, sides)
     rolls.push(roll)
     if (roll < minimum) {
       continue

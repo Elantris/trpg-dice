@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { RollResult } from '../utils/cache'
-import randomInt from './randomInt'
+import { type RollResult } from '../utils/cache'
+import randInt from '../utils/randInt'
 
 const rerollOnce: (
   count: number,
@@ -22,10 +22,10 @@ const rerollOnce: (
   const results: number[] = []
 
   for (let i = 0; i < count; i++) {
-    const roll = randomInt(1, sides)
+    const roll = randInt(1, sides)
     rolls.push(roll)
     if (roll < minimum) {
-      const roll2 = randomInt(1, sides)
+      const roll2 = randInt(1, sides)
       rolls.push(roll2)
       results.push(chooseHigher ? Math.max(roll, roll2) : roll2)
     } else {

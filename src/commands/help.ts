@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js'
-import { ApplicationCommandProps } from '../utils/cache'
+import { type ApplicationCommandProps } from '../utils/cache'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -12,12 +12,12 @@ const content = `
 開發群組：https://discord.gg/Ctwz4BB
 `.trim()
 
-const execute: ApplicationCommandProps['execute'] = async (request) => {
-  if (!request.isChatInputCommand()) {
+const execute: ApplicationCommandProps['execute'] = async (interaction) => {
+  if (!interaction.isChatInputCommand()) {
     return
   }
 
-  await request.reply(content)
+  await interaction.reply(content)
 }
 
 export default {

@@ -1,6 +1,10 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
-import { ApplicationCommandProps, channels, database } from '../utils/cache'
+import {
+  channels,
+  database,
+  type ApplicationCommandProps,
+} from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import notEmpty from '../utils/notEmpty'
 
@@ -16,15 +20,15 @@ const data: ApplicationCommandProps['data'] = [
     ),
 ]
 
-const execute: ApplicationCommandProps['execute'] = async (request) => {
+const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   const options: {
     items: string[]
   } = {
     items: [],
   }
 
-  if (request.isChatInputCommand()) {
-    options.items = request.options
+  if (interaction.isChatInputCommand()) {
+    options.items = interaction.options
       .getString('items', true)
       .trim()
       .split(/\s+/)
@@ -34,9 +38,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   if (options.items.length < 2) {
-    await request.reply({
+    await interaction.reply({
       content: ':x: 排列項目需要至少兩個',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
@@ -50,24 +54,25 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     ;[orders[i], orders[j]] = [orders[j], orders[i]]
   }
 
-  const responseMessage = await request.reply({
+  const response = await interaction.reply({
     content: `:game_die: Shuffle(**${options.items.length}**):\n${orders
       .map((order) => options.items[order])
       .join(' ')}`,
-    fetchReply: true,
+    withResponse: true,
     allowedMentions: {
       parse: [],
     },
   })
+  const responseMessage = response.resource?.message
   const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(OpenColor.teal[5]),
         author: {
-          icon_url: request.user.displayAvatarURL(),
-          name: request.user.tag,
+          icon_url: interaction.user.displayAvatarURL(),
+          name: interaction.user.tag,
         },
-        description: `Message: [Link](${responseMessage.url})\nCount: ${options.items.length}`,
+        description: `Message: [Link](${responseMessage?.url})\nCount: ${options.items.length}`,
         fields: [
           {
             name: 'Input',
@@ -84,13 +89,16 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
             inline: true,
           },
         ],
+        timestamp: interaction.createdAt.toISOString(),
+        footer: {
+          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
+        },
       },
     ],
   })
-
-  if (logMessage) {
+  if (responseMessage) {
     await database
-      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
       .set(logMessage.id)
   }
 }

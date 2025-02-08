@@ -1,48 +1,14 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
-import randomInt from '../dice/randomInt'
 import {
-  ApplicationCommandProps,
   channels,
   database,
-  lucks,
+  guildLucks,
+  type ApplicationCommandProps,
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
-
-const data: ApplicationCommandProps['data'] = [
-  new SlashCommandBuilder()
-    .setName('luck')
-    .setDescription('今日運勢')
-    .addSubcommand((command) =>
-      command
-        .setName('pick')
-        .setDescription('抽選今日運勢')
-        .addStringOption((option) =>
-          option.setName('pool').setDescription('運勢池').setAutocomplete(true),
-        ),
-    )
-    .addSubcommand((command) =>
-      command
-        .setName('guild')
-        .setDescription('查看伺服器運勢')
-        .addStringOption((option) =>
-          option
-            .setName('date')
-            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
-        ),
-    )
-    .addSubcommand((command) =>
-      command
-        .setName('reset')
-        .setDescription('重置伺服器運勢（限管理員）')
-        .addStringOption((option) =>
-          option
-            .setName('date')
-            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
-        ),
-    ),
-]
+import randInt from '../utils/randInt'
 
 type PoolProps = {
   id: string
@@ -59,7 +25,7 @@ const pools: PoolProps[] = [
   {
     id: 'default',
     sort: 0,
-    name: '通用',
+    name: '7 段運勢',
     items: [
       { weight: 100, text: ':nauseated_face: 大凶' },
       { weight: 100, text: ':green_circle: 凶' },
@@ -105,42 +71,49 @@ const pools: PoolProps[] = [
   },
 ]
 
-const cachedGuildPools: {
-  [guildId: string]: {
-    name: string
-    value: string
-  }[]
-} = {}
+const data: ApplicationCommandProps['data'] = [
+  new SlashCommandBuilder()
+    .setName('luck')
+    .setDescription('今日運勢')
+    .addSubcommand((command) =>
+      command
+        .setName('pick')
+        .setDescription('抽選今日運勢')
+        .addStringOption((option) =>
+          option
+            .setName('pool')
+            .setDescription('運勢池')
+            .setRequired(true)
+            .addChoices(
+              ...pools.map((pool) => ({ name: pool.name, value: pool.id })),
+            ),
+        ),
+    )
+    .addSubcommand((command) =>
+      command
+        .setName('guild')
+        .setDescription('查看伺服器運勢')
+        .addStringOption((option) =>
+          option
+            .setName('date')
+            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
+        ),
+    )
+    .addSubcommand((command) =>
+      command
+        .setName('reset')
+        .setDescription('重置伺服器運勢（限管理員）')
+        .addStringOption((option) =>
+          option
+            .setName('date')
+            .setDescription(`日期 ${DateTime.now().toFormat('yyyy-MM-dd')}`),
+        ),
+    ),
+]
 
-const autocomplete: ApplicationCommandProps['autocomplete'] = async (
-  interaction,
-) => {
-  if (!interaction.guildId) {
-    !interaction.respond([])
-    return
-  }
-
-  const subcommand = interaction.options.getSubcommand()
-
-  if (subcommand === 'pick') {
-    const guildId = interaction.guildId
-    if (!cachedGuildPools[guildId]) {
-      cachedGuildPools[guildId] = pools
-        .filter((pool) => !pool.guildIds || pool.guildIds.includes(guildId))
-        .map((pool) => ({
-          name: pool.name,
-          value: pool.id,
-        }))
-    }
-
-    await interaction.respond(cachedGuildPools[guildId])
-    return
-  }
-}
-
-const execute: ApplicationCommandProps['execute'] = async (request) => {
+const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   const options: {
-    subcommand: 'pick' | 'guild' | 'reset'
+    subcommand: string
     pool: string
     date: string
   } = {
@@ -149,21 +122,20 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     date: '',
   }
 
-  if (request.isChatInputCommand()) {
-    const todayDate = DateTime.fromMillis(request.createdTimestamp).toFormat(
-      'yyyy-MM-dd',
-    )
+  if (interaction.isChatInputCommand()) {
+    const todayDate = DateTime.fromMillis(
+      interaction.createdTimestamp,
+    ).toFormat('yyyy-MM-dd')
 
-    options.subcommand =
-      request.options.getSubcommand() as typeof options.subcommand
+    options.subcommand = interaction.options.getSubcommand()
     switch (options.subcommand) {
       case 'pick':
-        options.pool = request.options.getString('pool') || 'default'
+        options.pool = interaction.options.getString('pool') || 'default'
 
         if (!pools.find((pool) => pool.id === options.pool)) {
-          await request.reply({
+          await interaction.reply({
             content: `:x: 運勢池 \`${options.pool}\` 不存在`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           })
           return
         }
@@ -172,7 +144,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
         break
       case 'guild':
       case 'reset':
-        options.date = request.options.getString('date') || todayDate
+        options.date = interaction.options.getString('date') || todayDate
 
         if (!DateTime.fromFormat(options.date, 'yyyy-MM-dd').isValid) {
           options.date = todayDate
@@ -185,12 +157,12 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
     return
   }
 
-  if (!request.guild) {
+  if (!interaction.guild) {
     return
   }
 
-  const guildId = request.guild.id
-  const member = await request.guild.members.fetch(request.user.id)
+  const guildId = interaction.guild.id
+  const member = await interaction.guild.members.fetch(interaction.user.id)
   if (!member) {
     return
   }
@@ -201,32 +173,32 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
       member.id !== '156935214780776448' &&
       !member.permissions.has('Administrator')
     ) {
-      await request.reply({
+      await interaction.reply({
         content: `:lock: 你沒有權限使用此指令`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
       return
     }
 
     await database.ref(`/lucks/${guildId}/${options.date}`).remove()
-    delete lucks[guildId]?.[options.date]
-    const responseMessage = await request.reply({
-      content: `:white_check_mark: 已重置 ${request.guild.name} \`${options.date}\` 的運勢`,
-      fetchReply: true,
+    delete guildLucks[guildId]?.[options.date]
+    const response = await interaction.reply({
+      content: `:white_check_mark: 已重置 ${interaction.guild.name} \`${options.date}\` 的運勢`,
+      withResponse: true,
     })
-
+    const responseMessage = response.resource?.message
     await channels['logger'].send({
       embeds: [
         {
           color: colorFormatter(OpenColor.yellow[5]),
           author: {
-            icon_url: request.user.displayAvatarURL(),
-            name: request.user.tag,
+            icon_url: interaction.user.displayAvatarURL(),
+            name: interaction.user.tag,
           },
-          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: reset\nDate: ${options.date}`,
-          timestamp: request.createdAt.toISOString(),
+          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: reset\nDate: ${options.date}`,
+          timestamp: interaction.createdAt.toISOString(),
           footer: {
-            text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
+            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
           },
         },
       ],
@@ -236,21 +208,14 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   // init guild lucks
-  if (!lucks[guildId]) {
-    lucks[guildId] = {}
+  if (!guildLucks[guildId]) {
+    guildLucks[guildId] = {}
   }
-  if (!lucks[guildId][options.date]) {
-    await database
-      .ref(`/lucks/${guildId}/${options.date}`)
-      .once('value', (snapshot: any) => {
-        lucks[guildId][options.date] = snapshot.val()
-      })
-  }
-  if (!lucks[guildId][options.date]) {
-    delete lucks[guildId]
-    lucks[guildId] = {
-      [options.date]: {},
-    }
+  if (!guildLucks[guildId][options.date]) {
+    guildLucks[guildId]![options.date] =
+      (
+        await database.ref(`/lucks/${guildId}/${options.date}`).once('value')
+      ).val() || {}
   }
 
   // handle guild lucks
@@ -260,8 +225,9 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
       time: number
       pool: string
       text: string
-    }[] = Object.keys(lucks[guildId][options.date]).map((userId) => {
-      const [time, pool, text] = lucks[guildId][options.date][userId].split(';')
+    }[] = Object.keys(guildLucks[guildId][options.date]!).map((userId) => {
+      const [time, pool, text] =
+        guildLucks[guildId]![options.date]![userId]!.split(';')
       return {
         userId,
         time: Number(time),
@@ -270,51 +236,50 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
       }
     })
 
-    const responseMessage = await request.reply({
+    const response = await interaction.reply({
       embeds: [
         {
           color: colorFormatter(OpenColor.yellow[5]),
-          title: `${request.guild.name} ${options.date} 總體運勢`,
-          description: `${userLucks
+          title: `${interaction.guild.name} ${options.date} 總體運勢`,
+          description: userLucks
             .sort((a, b) => a.time - b.time)
             .map(
               ({ userId, time, pool, text }) =>
                 `\`${DateTime.fromMillis(time).toFormat('HH:mm:ss')}\` (${pool}) <@${userId}> ${text}`,
             )
-            .join('\n')}`,
+            .join('\n'),
         },
       ],
-      fetchReply: true,
+      withResponse: true,
     })
-
+    const responseMessage = response.resource?.message
     await channels['logger'].send({
       embeds: [
         {
           color: colorFormatter(OpenColor.yellow[5]),
           author: {
-            icon_url: request.user.displayAvatarURL(),
-            name: request.user.tag,
+            icon_url: interaction.user.displayAvatarURL(),
+            name: interaction.user.tag,
           },
-          description: `Message: [Link](${responseMessage.url})\nGuildId: \`${request.guild.id}\`\nCommand: guild\nDate: ${options.date}`,
-          timestamp: request.createdAt.toISOString(),
+          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: guild\nDate: ${options.date}`,
+          timestamp: interaction.createdAt.toISOString(),
           footer: {
-            text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
+            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
           },
         },
       ],
     })
-
     return
   }
 
   // check exist
   if (
     process.env['NODE_ENV'] !== 'development' &&
-    lucks[guildId][options.date][request.user.id]
+    guildLucks[guildId][options.date]![interaction.user.id]
   ) {
-    await request.reply({
+    await interaction.reply({
       content: ':x: 你今天已經抽過運勢了，請明天再來',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     })
     return
   }
@@ -322,7 +287,7 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   // random luck
   const pool = pools.find((pool) => pool.id === options.pool)!
   const totalWeights = pool.items.reduce((prev, item) => prev + item.weight, 0)
-  const playerLuck = randomInt(1, totalWeights)
+  const playerLuck = randInt(1, totalWeights)
 
   let tmpLuck = playerLuck
   let resultItem = pool.items[0]
@@ -335,36 +300,37 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
   }
 
   // save data
-  const userData = `${request.createdTimestamp};${pool.name};${resultItem.text}`
-  lucks[guildId][options.date][request.user.id] = userData
+  const userData = `${interaction.createdTimestamp};${pool.name};${resultItem.text}`
+  guildLucks[guildId][options.date]![interaction.user.id] = userData
   await database
-    .ref(`/lucks/${guildId}/${options.date}/${request.user.id}`)
+    .ref(`/lucks/${guildId}/${options.date}/${interaction.user.id}`)
     .set(userData)
 
   // response
-  const responseMessage = await request.reply({
+  const response = await interaction.reply({
     content: `:game_die: **${member.displayName}** 今日運勢（${pool.name}）：${resultItem.text}`,
-    fetchReply: true,
+    withResponse: true,
   })
+  const responseMessage = response.resource?.message
   const logMessage = await channels['logger'].send({
     embeds: [
       {
         color: colorFormatter(OpenColor.yellow[5]),
         author: {
-          icon_url: request.user.displayAvatarURL(),
-          name: request.user.tag,
+          icon_url: interaction.user.displayAvatarURL(),
+          name: interaction.user.tag,
         },
-        description: `Message: [Link](${responseMessage.url})\nPool: ${options.pool}\nLuck: ${playerLuck}/${totalWeights}\nResult: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)`,
-        timestamp: request.createdAt.toISOString(),
+        description: `Message: [Link](${responseMessage?.url})\nPool: ${options.pool}\nLuck: ${playerLuck}/${totalWeights}\nResult: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)`,
+        timestamp: interaction.createdAt.toISOString(),
         footer: {
-          text: `${responseMessage.createdTimestamp - request.createdTimestamp}ms`,
+          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
         },
       },
     ],
   })
-  if (logMessage) {
+  if (responseMessage) {
     await database
-      .ref(`/logs/${request.guildId}/${responseMessage.id}`)
+      .ref(`/logs/${guildId}/${responseMessage.id}`)
       .set(logMessage.id)
   }
 }
@@ -372,5 +338,4 @@ const execute: ApplicationCommandProps['execute'] = async (request) => {
 export default {
   data,
   execute,
-  autocomplete,
 }
