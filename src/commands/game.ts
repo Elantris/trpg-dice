@@ -308,11 +308,13 @@ const handleChatInputCommand = async (
       break
 
     case 'rank':
-      guildMemberCoins[guildId] = Object.assign(
-        {},
-        (await database.ref(`/coins/${guildId}`).once('value')).val() || {},
-        guildMemberCoins[guildId] || {},
-      )
+      if (!guildMemberCoins[guildId]?.['_']) {
+        guildMemberCoins[guildId] = Object.assign(
+          { _: 1 },
+          (await database.ref(`/coins/${guildId}`).once('value')).val() || {},
+          guildMemberCoins[guildId] || {},
+        )
+      }
 
       response = await interaction.reply({
         content: `:dart: ${interaction.guild.name} 排行`,
@@ -320,6 +322,7 @@ const handleChatInputCommand = async (
           {
             color: colorFormatter(OpenColor.orange[5]),
             description: Object.keys(guildMemberCoins[guildId]!)
+              .filter((userId) => userId !== '_')
               .sort(
                 (a, b) =>
                   guildMemberCoins[guildId]![b]! -

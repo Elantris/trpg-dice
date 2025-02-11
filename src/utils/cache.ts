@@ -18,6 +18,7 @@ import randInt from './randInt'
 export const channels: {
   [key in string]: TextChannel
 } = {}
+
 export type ApplicationCommandProps = {
   data: (
     | SlashCommandOptionsOnlyBuilder
@@ -40,6 +41,7 @@ admin.initializeApp({
   }),
   databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
 })
+
 export const database = admin.database()
 
 // command roll
@@ -47,11 +49,14 @@ export type RollResult = {
   value: number
   rolls: number[]
 }
+
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
+
 export const EXPRESSION_REGEXP = new RegExp(
   `^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`,
   'gi',
 ) // [+-*/,] [X.Y | XdYaZbW]
+
 export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_TIMES: '算式重複計算次數限 1 ~ 10 次',
   INVALID_EXPRESSION: '無效的算式',
@@ -63,7 +68,6 @@ export const ERROR_DESCRIPTIONS: Record<string, string> = {
 }
 
 // command luck
-
 export const guildLucks: {
   [GuildID in string]?: {
     [Date in string]?: {
@@ -136,6 +140,7 @@ export const guildMemberCoins: {
     [MemberID in string]?: number
   }
 } = {}
+
 export const updatedMemberCoins: {
   [GuildID in string]?: {
     [MemberID in string]?: number
@@ -152,13 +157,10 @@ export const getMemberCoins = async (
   }
 
   if (typeof guildMemberCoins[guildId][memberId] === 'undefined') {
-    setMemberCoins(
-      guildId,
-      memberId,
+    guildMemberCoins[guildId][memberId] =
       (
         await database.ref(`/coins/${guildId}/${memberId}`).once('value')
-      ).val() || 0,
-    )
+      ).val() || 0
   }
 
   if (
@@ -166,17 +168,17 @@ export const getMemberCoins = async (
     guildConfigs[guildId]?.VoiceRewards
   ) {
     const minutes = Math.floor((now - botData.voice[guildId][memberId]) / 60000)
-    botData.voice[guildId][memberId] += minutes * 60000
-    setMemberCoins(
-      guildId,
-      memberId,
-      guildMemberCoins[guildId][memberId]! +
-        randInt(
-          guildConfigs[guildId].VoiceRewards.min,
-          guildConfigs[guildId].VoiceRewards.max,
-        ) *
-          minutes,
-    )
+    if (minutes) {
+      botData.voice[guildId][memberId] += minutes * 60000
+      const { min, max } = guildConfigs[guildId].VoiceRewards
+      const rewards = Array.from({ length: minutes }, () => randInt(min, max))
+      setMemberCoins(
+        guildId,
+        memberId,
+        guildMemberCoins[guildId][memberId]! +
+          rewards.reduce((a, b) => a + b, 0),
+      )
+    }
   }
 
   return guildMemberCoins[guildId][memberId] || 0
