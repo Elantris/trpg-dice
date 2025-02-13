@@ -61,7 +61,8 @@ const execute: GameProps['execute'] = async (interaction) => {
   const luck = randInt(0, 100)
   const result = luck < 50 ? 'head' : luck < 100 ? 'tail' : 'other'
   const isWinning = action === result
-  const rewardCoins = isWinning ? Number(gameBet) * 2 : 0
+  const betCoins = Number(gameBet)
+  const rewardCoins = isWinning ? betCoins * 2 : 0
 
   const content = `:coin: <@!${interaction.user.id}> 下注「${action === 'head' ? '正面' : '反面'}」，結果是「${result === 'head' ? '正面' : result === 'tail' ? '反面' : '卡在縫隙中間！'}」${isWinning ? `，獲得 :coin: ${rewardCoins}` : ''}`
   await interaction.reply({
@@ -74,6 +75,7 @@ const execute: GameProps['execute'] = async (interaction) => {
     content,
     luck,
     result,
+    betCoins,
     rewardCoins,
   }
 }

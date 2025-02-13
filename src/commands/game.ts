@@ -11,7 +11,6 @@ import {
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import {
-  channels,
   database,
   GameConfigNames,
   GameNames,
@@ -24,6 +23,7 @@ import {
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import isKeyOfObject from '../utils/isKeyOfObject'
+import sendLog from '../utils/sendLog'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -146,6 +146,14 @@ const handleButton = async (interaction: ButtonInteraction) => {
       allowedMentions: { parse: [] },
       flags: MessageFlags.Ephemeral,
     })
+    await sendLog(null, interaction, {
+      embed: {
+        description: `
+Message: [Link](${interaction.message.url}) \`${interaction.customId}\`
+Response: ${content}
+`.trim(),
+      },
+    })
     return
   }
 
@@ -165,7 +173,7 @@ const handleButton = async (interaction: ButtonInteraction) => {
 
   if (memberCoins < betCoins) {
     await interaction.reply({
-      content: `:x: 參加遊戲需要 :coin: ${gameBet}，你目前擁有 :coin: ${memberCoins}`,
+      content: `:x: 參加遊戲至少需要 :coin: ${gameBet}，你目前擁有 :coin: ${memberCoins}`,
       flags: MessageFlags.Ephemeral,
     })
     return
@@ -173,37 +181,23 @@ const handleButton = async (interaction: ButtonInteraction) => {
 
   const result = await Games[gameName].execute(interaction)
   if (result) {
-    if (betCoins !== result.rewardCoins) {
-      setMemberCoins(
-        guildId,
-        memberId,
-        memberCoins - betCoins + result.rewardCoins,
-      )
+    const newMemberCoins = memberCoins - result.betCoins + result.rewardCoins
+    if (memberCoins !== newMemberCoins) {
+      setMemberCoins(guildId, memberId, newMemberCoins)
     }
 
     const threadMessage = await thread.send({
       content: result.content,
       allowedMentions: { parse: [] },
     })
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.orange[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `
+    await sendLog(threadMessage, interaction, {
+      embed: {
+        description: `
 Message: [Link](${threadMessage.url}) \`${interaction.customId}\`
 Luck: \`${result.luck}\` ${result.result}
-Rewards: ${result.rewardCoins}
+Coins: ${memberCoins} - ${result.betCoins} + ${result.rewardCoins} = ${newMemberCoins}
 `.trim(),
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${threadMessage.createdTimestamp - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+      },
     })
   }
 }
@@ -393,32 +387,18 @@ const handleChatInputCommand = async (
 
   const responseMessage = response?.resource?.message
   if (responseMessage) {
-    const logMessage = await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.orange[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
 Message: [Link](${responseMessage.url})
 Subcommand: ${interaction.options.getSubcommand()}
 Options: ${Object.keys(options)
-            .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
-            .join(' ')}
-Result: ${responseMessage.content}
+          .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
+          .join(' ')}
+Response: ${responseMessage.content}
 `.trim(),
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${responseMessage.createdTimestamp - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+      },
     })
-    await database
-      .ref(`/logs/${guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
   }
 }
 

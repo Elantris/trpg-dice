@@ -96,6 +96,7 @@ export type GameProps = {
     content: string
     luck: number | string
     result: string
+    betCoins: number
     rewardCoins: number
   } | void>
 }

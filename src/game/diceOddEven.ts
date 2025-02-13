@@ -63,7 +63,8 @@ const execute: GameProps['execute'] = async (interaction) => {
   const result =
     sum === 3 || sum === 18 ? 'other' : sum % 2 === 0 ? 'even' : 'odd'
   const isWinning = action === result
-  const rewardCoins = isWinning ? Number(gameBet) * 2 : 0
+  const betCoins = Number(gameBet)
+  const rewardCoins = isWinning ? betCoins * 2 : 0
 
   const content = `:game_die: <@!${interaction.user.id}> 下注「${action === 'odd' ? '單數' : '雙數'}」，擲骰結果「${lucks.join('、')}」總和為「**${sum}**」${isWinning ? `，獲得 :coin: ${rewardCoins}` : ''}`
 
@@ -71,6 +72,7 @@ const execute: GameProps['execute'] = async (interaction) => {
     content,
     luck: `${lucks}`,
     result,
+    betCoins,
     rewardCoins,
   }
 }

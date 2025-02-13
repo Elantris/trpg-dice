@@ -9,6 +9,7 @@ import {
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import randInt from '../utils/randInt'
+import sendLog from '../utils/sendLog'
 
 type PoolProps = {
   id: string
@@ -312,27 +313,17 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     withResponse: true,
   })
   const responseMessage = response.resource?.message
-  const logMessage = await channels['logger'].send({
-    embeds: [
-      {
-        color: colorFormatter(OpenColor.yellow[5]),
-        author: {
-          icon_url: interaction.user.displayAvatarURL(),
-          name: interaction.user.tag,
-        },
-        description: `Message: [Link](${responseMessage?.url})\nPool: ${options.pool}\nLuck: ${playerLuck}/${totalWeights}\nResult: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)`,
-        timestamp: interaction.createdAt.toISOString(),
-        footer: {
-          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-        },
-      },
-    ],
+  await sendLog(responseMessage, interaction, {
+    embed: {
+      description: `
+Message: [Link](${responseMessage?.url})
+Pool: ${options.pool}
+Luck: ${playerLuck}/${totalWeights}
+Result: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)
+`.trim(),
+    },
+    isSave: !!responseMessage,
   })
-  if (responseMessage) {
-    await database
-      .ref(`/logs/${guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
-  }
 }
 
 export default {
