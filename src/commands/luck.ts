@@ -2,7 +2,6 @@ import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import {
-  channels,
   database,
   guildLucks,
   type ApplicationCommandProps,
@@ -188,23 +187,16 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
       withResponse: true,
     })
     const responseMessage = response.resource?.message
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.yellow[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: reset\nDate: ${options.date}`,
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
+Message: [Link](${responseMessage?.url})
+GuildId: \`${interaction.guild.id}\`
+Command: reset
+Date: ${options.date}
+`.trim(),
+      },
     })
-
     return
   }
 
@@ -254,21 +246,15 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
       withResponse: true,
     })
     const responseMessage = response.resource?.message
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.yellow[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: guild\nDate: ${options.date}`,
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
+Message: [Link](${responseMessage?.url})
+GuildId: \`${interaction.guild.id}\`
+Command: guild
+Date: ${options.date}
+`.trim(),
+      },
     })
     return
   }

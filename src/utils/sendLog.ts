@@ -4,14 +4,14 @@ import {
   Interaction,
   InteractionType,
   Message,
-  PublicThreadChannel,
+  ThreadChannel,
 } from 'discord.js'
 import OpenColor from 'open-color'
 import { channels, database } from './cache'
 import colorFormatter from './colorFormatter'
 
 const threadChannels: {
-  [key in string]?: PublicThreadChannel
+  [key in string]?: ThreadChannel
 } = {}
 
 const colors: {
@@ -44,52 +44,53 @@ const sendLog = async (
     return
   }
 
-  if (!threadChannels[commandName]) {
-    const threadChannel = channels['logger'].threads.cache.find(
-      (v) => v.name === commandName && v.type === ChannelType.PublicThread,
-    )
-    if (
-      threadChannel?.type === ChannelType.PublicThread &&
-      !threadChannel.locked
-    ) {
-      threadChannels[commandName] = threadChannel
-    } else {
-      const threadChannel = await channels['logger'].threads.create({
-        name: commandName,
-      })
-
-      if (threadChannel.type === ChannelType.PublicThread) {
-        threadChannels[commandName] = threadChannel
-      }
-    }
+  const embed: APIEmbed = {
+    color: colors[commandName],
+    author: {
+      icon_url: interaction.user.displayAvatarURL(),
+      name: interaction.user.tag,
+    },
+    timestamp: interaction.createdAt.toISOString(),
+    footer: {
+      text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
+    },
+    ...(overrideOptions?.embed || {}),
   }
 
-  const logMessage = await threadChannels[commandName]?.send({
-    embeds: [
-      {
-        color: colors[commandName],
-        author: {
-          icon_url: interaction.user.displayAvatarURL(),
-          name: interaction.user.tag,
-        },
-        timestamp: interaction.createdAt.toISOString(),
-        footer: {
-          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-        },
-        ...(overrideOptions?.embed || {}),
-      },
-    ],
-  })
+  if (overrideOptions?.isSave) {
+    const logMessage = await channels['logger']?.send({
+      embeds: [embed],
+    })
 
-  if (
-    overrideOptions?.isSave &&
-    logMessage &&
-    interaction.guildId &&
-    responseMessage?.id
-  ) {
-    await database
-      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
-      .set(`${logMessage.id},${commandName}`)
+    if (logMessage && interaction.guildId && responseMessage?.id) {
+      await database
+        .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
+        .set(`${logMessage.id}`)
+    }
+  } else {
+    if (!threadChannels[commandName]) {
+      const threadChannel = channels['logger'].threads.cache.find(
+        (v) =>
+          v.name === commandName &&
+          v.type === ChannelType.PublicThread &&
+          !v.locked,
+      )
+      if (threadChannel) {
+        threadChannels[commandName] = threadChannel
+      } else {
+        const threadChannel = await channels['logger'].threads.create({
+          name: commandName,
+        })
+
+        if (threadChannel.type === ChannelType.PublicThread) {
+          threadChannels[commandName] = threadChannel
+        }
+      }
+    }
+
+    await threadChannels[commandName]?.send({
+      embeds: [embed],
+    })
   }
 }
 

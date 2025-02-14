@@ -58,14 +58,12 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     return
   }
 
-  const log: string =
+  const logMessageId: string =
     (
       await database
         .ref(`/logs/${interaction.guildId}/${options.targetMessageId}`)
         .once('value')
     ).val() ?? ''
-
-  const [logMessageId, commandName] = log.split(',')
   if (!logMessageId) {
     await interaction.reply({
       content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,
@@ -74,12 +72,9 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     return
   }
 
-  const logMessage = commandName
-    ? await channels['logger'].threads.cache
-        .find((v) => v.name === commandName)
-        ?.messages.fetch(logMessageId)
-        .catch(() => null)
-    : await channels['logger'].messages.fetch(logMessageId).catch(() => null)
+  const logMessage = await channels['logger'].messages
+    .fetch(logMessageId)
+    .catch(() => null)
   if (!logMessage) {
     await interaction.reply({
       content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,
