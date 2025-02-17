@@ -109,8 +109,11 @@ export const Games: {
   slotMachine,
 }
 
+export const statusKeys = ['version', 'guilds'] as const
+
 export const botData: {
   readyAt: number
+  statusIndex: number
   message: {
     [GuildID in string]?: {
       [MemberID in string]?: number
@@ -123,6 +126,7 @@ export const botData: {
   }
 } = {
   readyAt: Date.now(),
+  statusIndex: 0,
   message: {},
   voice: {},
 }
@@ -137,8 +141,8 @@ export const guildConfigs: {
 } = {}
 
 export const guildMemberCoins: {
-  [GuildID in string]?: {
-    [MemberID in string]?: number
+  [GuildID in string]: {
+    [MemberID in string]: number
   }
 } = {}
 
@@ -154,14 +158,12 @@ export const getMemberCoins = async (
   now = Date.now(),
 ) => {
   if (!guildMemberCoins[guildId]) {
-    guildMemberCoins[guildId] = {}
+    guildMemberCoins[guildId] =
+      (await database.ref(`/coins/${guildId}`).once('value')).val() || {}
   }
 
   if (typeof guildMemberCoins[guildId][memberId] === 'undefined') {
-    guildMemberCoins[guildId][memberId] =
-      (
-        await database.ref(`/coins/${guildId}/${memberId}`).once('value')
-      ).val() || 0
+    guildMemberCoins[guildId][memberId] = 0
   }
 
   if (
@@ -176,7 +178,7 @@ export const getMemberCoins = async (
       setMemberCoins(
         guildId,
         memberId,
-        guildMemberCoins[guildId][memberId]! +
+        guildMemberCoins[guildId][memberId] +
           rewards.reduce((a, b) => a + b, 0),
       )
     }

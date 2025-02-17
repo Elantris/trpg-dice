@@ -122,7 +122,11 @@ const execute: ApplicationCommandProps['execute'] = async (
       color: colorFormatter(
         commandError ? OpenColor.red[5] : OpenColor.violet[5],
       ),
-      description: `Message: [Link](${responseMessage?.url})\nExpression: \`${options.expression}\`\nTimes: ${options.times}`,
+      description: `
+Message: [Link](${responseMessage?.url})
+Expression: \`${options.expression}\`
+Times: ${options.times}
+`.trim(),
       fields: commandError
         ? [
             {
