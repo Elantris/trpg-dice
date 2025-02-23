@@ -106,3 +106,4 @@ dist
 build
 tmp
 .env.local
+appConfig.ts

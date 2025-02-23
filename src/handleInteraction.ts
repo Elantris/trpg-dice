@@ -1,19 +1,19 @@
 import {
+  CacheType,
   Client,
+  Interaction,
   InteractionType,
   MessageFlags,
   REST,
+  RESTPostAPIApplicationCommandsJSONBody,
   Routes,
-  type CacheType,
-  type Interaction,
-  type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js'
 import { readdirSync } from 'fs'
-import OpenColor from 'open-color'
+import OpenColor from 'open-color' with { type: 'json' }
 import { join } from 'path'
-import { channels, type ApplicationCommandProps } from './utils/cache'
-import colorFormatter from './utils/colorFormatter'
-import timeFormatter from './utils/timeFormatter'
+import { ApplicationCommandProps, channels } from './utils/cache.js'
+import colorFormatter from './utils/colorFormatter.js'
+import timeFormatter from './utils/timeFormatter.js'
 
 // register commands
 const commands: {
@@ -23,13 +23,13 @@ const commands: {
 export const registerCommands = async (client: Client<true>) => {
   const body: RESTPostAPIApplicationCommandsJSONBody[] = []
 
-  for (const filename of readdirSync(join(__dirname, './commands'))) {
+  for (const filename of readdirSync(join(import.meta.dirname, './commands'))) {
     if (!filename.endsWith('.js') && !filename.endsWith('.ts')) {
       continue
     }
     const commandName = filename.split('.')[0]
     const { default: command }: { default?: Partial<ApplicationCommandProps> } =
-      await import(join(__dirname, './commands', filename))
+      await import(join(import.meta.dirname, './commands', filename))
     if (command?.execute && command.data) {
       commands[commandName] = command.execute
       command.data.forEach((v) => body.push(v.toJSON()))

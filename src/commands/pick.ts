@@ -1,7 +1,7 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js'
-import { type ApplicationCommandProps } from '../utils/cache'
-import notEmpty from '../utils/notEmpty'
-import sendLog from '../utils/sendLog'
+import { ApplicationCommandProps } from '../utils/cache.js'
+import notEmpty from '../utils/notEmpty.js'
+import sendLog from '../utils/sendLog.js'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()

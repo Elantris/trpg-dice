@@ -1,20 +1,21 @@
 import {
   ChatInputCommandInteraction,
   ContextMenuCommandBuilder,
+  Interaction,
   InteractionCallbackResponse,
   MessageComponentInteraction,
+  SlashCommandOptionsOnlyBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
   TextChannel,
-  type Interaction,
-  type SlashCommandOptionsOnlyBuilder,
-  type SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js'
 import admin from 'firebase-admin'
-import coinFlipping from '../game/coinFlipping'
-import diceOddEven from '../game/diceOddEven'
-import handGame from '../game/handGame'
-import roulette from '../game/roulette'
-import slotMachine from '../game/slotMachine'
-import randInt from './randInt'
+import appConfig from '../appConfig.js'
+import coinFlipping from '../game/coinFlipping.js'
+import diceOddEven from '../game/diceOddEven.js'
+import handGame from '../game/handGame.js'
+import roulette from '../game/roulette.js'
+import slotMachine from '../game/slotMachine.js'
+import randInt from './randInt.js'
 
 // discord
 export const channels: {
@@ -39,7 +40,7 @@ admin.initializeApp({
     projectId: 'trpg-dice-19e3e',
     clientEmail:
       'firebase-adminsdk-kf7kg@trpg-dice-19e3e.iam.gserviceaccount.com',
-    privateKey: process.env['PRIVATE_KEY'],
+    privateKey: appConfig.PRIVATE_KEY,
   }),
   databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
 })
@@ -119,7 +120,6 @@ export const statusKeys = ['version', 'guilds'] as const
 
 export const botData: {
   readyAt: number
-  statusIndex: number
   message: {
     [GuildID in string]?: {
       [MemberID in string]?: number
@@ -132,7 +132,6 @@ export const botData: {
   }
 } = {
   readyAt: Date.now(),
-  statusIndex: 0,
   message: {},
   voice: {},
 }

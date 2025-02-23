@@ -4,11 +4,11 @@ import {
   ButtonStyle,
   MessageFlags,
 } from 'discord.js'
-import OpenColor from 'open-color'
-import { GameNames, guildMemberCoins, type GameProps } from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
-import pick from '../utils/pick'
-import randInt from '../utils/randInt'
+import OpenColor from 'open-color' with { type: 'json' }
+import { GameNames, GameProps, guildMemberCoins } from '../utils/cache.js'
+import colorFormatter from '../utils/colorFormatter.js'
+import pick from '../utils/pick.js'
+import randInt from '../utils/randInt.js'
 
 type Pattern = 'random' | 'single' | 'pair' | 'triple'
 const symbols = [

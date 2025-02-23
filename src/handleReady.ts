@@ -1,19 +1,17 @@
 import { ChannelType, Client } from 'discord.js'
-import { registerCommands } from './handleInteraction'
+import appConfig from './appConfig.js'
+import { registerCommands } from './handleInteraction.js'
 import {
   botData,
   channels,
   database,
   guildConfigs,
-  statusKeys,
   updatedMemberCoins,
-} from './utils/cache'
-import timeFormatter from './utils/timeFormatter'
+} from './utils/cache.js'
+import timeFormatter from './utils/timeFormatter.js'
 
 const handleReady = async (client: Client<true>) => {
-  const loggerChannel = client.channels.cache.get(
-    process.env['LOGGER_CHANNEL_ID'] || '',
-  )
+  const loggerChannel = client.channels.cache.get(appConfig.LOGGER_CHANNEL_ID)
   if (loggerChannel?.type !== ChannelType.GuildText) {
     console.log(`logger channel not found`)
     process.exit(-1)
@@ -36,19 +34,8 @@ const handleReady = async (client: Client<true>) => {
   )
 
   // bot activity
-  client.user.setActivity(`on ${client.guilds.cache.size} guilds.`)
   setInterval(() => {
-    switch (statusKeys[botData.statusIndex]) {
-      case 'version':
-        client.user.setActivity('Version 20250223')
-        break
-      case 'guilds':
-        client.user.setActivity(`on ${client.guilds.cache.size} guilds.`)
-        break
-      default:
-        break
-    }
-    botData.statusIndex = (botData.statusIndex + 1) % statusKeys.length
+    client.user.setActivity(`on ${client.guilds.cache.size} guilds.`)
   }, 30000)
 
   // update member coins

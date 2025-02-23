@@ -4,10 +4,10 @@ import {
   ButtonStyle,
   MessageFlags,
 } from 'discord.js'
-import OpenColor from 'open-color'
-import { GameNames, type GameProps } from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
-import randInt from '../utils/randInt'
+import OpenColor from 'open-color' with { type: 'json' }
+import { GameNames, GameProps } from '../utils/cache.js'
+import colorFormatter from '../utils/colorFormatter.js'
+import randInt from '../utils/randInt.js'
 
 const create: GameProps['create'] = async (interaction) => {
   const gameBet = interaction.options.getInteger('bet', true)

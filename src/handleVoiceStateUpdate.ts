@@ -1,5 +1,5 @@
 import { VoiceState } from 'discord.js'
-import { botData, getMemberCoins, guildConfigs } from './utils/cache'
+import { botData, getMemberCoins, guildConfigs } from './utils/cache.js'
 
 const handleVoiceStateUpdate = async (
   oldState: VoiceState,

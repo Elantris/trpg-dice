@@ -1,7 +1,8 @@
 {
-  "extends": "@tsconfig/recommended/tsconfig.json",
+  "extends": "@tsconfig/node-lts/tsconfig.json",
   "compilerOptions": {
-    "outDir": "./build"
+    "outDir": "./build",
+    "module": "NodeNext"
   },
   "include": ["./src/**/*.ts"]
 }

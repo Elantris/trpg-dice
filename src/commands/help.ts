@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js'
-import { type ApplicationCommandProps } from '../utils/cache'
+import { ApplicationCommandProps } from '../utils/cache.js'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()

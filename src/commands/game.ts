@@ -10,8 +10,9 @@ import {
   User,
 } from 'discord.js'
 import { DateTime } from 'luxon'
-import OpenColor from 'open-color'
+import OpenColor from 'open-color' with { type: 'json' }
 import {
+  ApplicationCommandProps,
   database,
   GameConfigNames,
   GameNames,
@@ -20,11 +21,10 @@ import {
   guildConfigs,
   guildMemberCoins,
   setMemberCoins,
-  type ApplicationCommandProps,
-} from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
-import isKeyOfObject from '../utils/isKeyOfObject'
-import sendLog from '../utils/sendLog'
+} from '../utils/cache.js'
+import colorFormatter from '../utils/colorFormatter.js'
+import isKeyOfObject from '../utils/isKeyOfObject.js'
+import sendLog from '../utils/sendLog.js'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()

@@ -1,0 +1,11 @@
+const appConfig: {
+  TOKEN: string
+  LOGGER_CHANNEL_ID: string
+  PRIVATE_KEY: string
+} = {
+  TOKEN: '',
+  LOGGER_CHANNEL_ID: '',
+  PRIVATE_KEY: '',
+}
+
+export default appConfig

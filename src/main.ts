@@ -1,12 +1,9 @@
-require('dotenv').config({
-  path: `${__dirname}/../${process.env['NODE_ENV'] === 'development' ? '.env.local' : '.env'}`,
-})
-
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
-import handleInteraction from './handleInteraction'
-import handleMessage from './handleMessage'
-import handleReady from './handleReady'
-import handleVoiceStateUpdate from './handleVoiceStateUpdate'
+import appConfig from './appConfig.js'
+import handleInteraction from './handleInteraction.js'
+import handleMessage from './handleMessage.js'
+import handleReady from './handleReady.js'
+import handleVoiceStateUpdate from './handleVoiceStateUpdate.js'
 
 const client = new Client({
   intents: [
@@ -22,4 +19,4 @@ client.on(Events.MessageCreate, handleMessage)
 client.on(Events.VoiceStateUpdate, handleVoiceStateUpdate)
 client.on(Events.ClientReady, handleReady)
 
-client.login(process.env['TOKEN'])
+client.login(appConfig.TOKEN)

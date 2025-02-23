@@ -1,14 +1,14 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
-import OpenColor from 'open-color'
+import OpenColor from 'open-color' with { type: 'json' }
 import {
+  ApplicationCommandProps,
   database,
   guildLucks,
-  type ApplicationCommandProps,
-} from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
-import randInt from '../utils/randInt'
-import sendLog from '../utils/sendLog'
+} from '../utils/cache.js'
+import colorFormatter from '../utils/colorFormatter.js'
+import randInt from '../utils/randInt.js'
+import sendLog from '../utils/sendLog.js'
 
 type PoolProps = {
   id: string

@@ -1,11 +1,11 @@
-import { Message, type OmitPartialGroupDMChannel } from 'discord.js'
+import { Message, OmitPartialGroupDMChannel } from 'discord.js'
 import {
   botData,
   getMemberCoins,
   guildConfigs,
   setMemberCoins,
-} from './utils/cache'
-import randInt from './utils/randInt'
+} from './utils/cache.js'
+import randInt from './utils/randInt.js'
 
 const handleMessage = async (
   message: OmitPartialGroupDMChannel<Message<boolean>>,

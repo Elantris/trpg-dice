@@ -1,5 +1,5 @@
-import { type RollResult } from '../utils/cache'
-import roll from './roll'
+import { RollResult } from '../utils/cache.js'
+import roll from './roll.js'
 
 const success: (count: number, sides: number, target: number) => RollResult = (
   count,

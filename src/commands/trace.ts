@@ -4,11 +4,7 @@ import {
   MessageFlags,
   SlashCommandBuilder,
 } from 'discord.js'
-import {
-  channels,
-  database,
-  type ApplicationCommandProps,
-} from '../utils/cache'
+import { ApplicationCommandProps, channels, database } from '../utils/cache.js'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()

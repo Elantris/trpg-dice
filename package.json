@@ -2,6 +2,7 @@
   "name": "trpg-dice",
   "description": "",
   "version": "1.0.0",
+  "type": "module",
   "main": "src/main.ts",
   "scripts": {
     "start": "node build/main.js",
@@ -24,7 +25,7 @@
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
     "@firebase/app-types": "^0.9.3",
-    "@tsconfig/recommended": "^1.0.8",
+    "@tsconfig/node-lts": "^22.0.1",
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.13.5",
     "@types/ramda": "^0.30.2",

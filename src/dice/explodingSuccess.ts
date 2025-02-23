@@ -1,5 +1,5 @@
-import { type RollResult } from '../utils/cache'
-import explode from './explode'
+import { RollResult } from '../utils/cache.js'
+import explode from './explode.js'
 
 const explodingSuccess: (
   count: number,

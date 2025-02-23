@@ -6,9 +6,9 @@ import {
   Message,
   ThreadChannel,
 } from 'discord.js'
-import OpenColor from 'open-color'
-import { channels, database } from './cache'
-import colorFormatter from './colorFormatter'
+import OpenColor from 'open-color' with { type: 'json' }
+import { channels, database } from './cache.js'
+import colorFormatter from './colorFormatter.js'
 
 const threadChannels: {
   [key in string]?: ThreadChannel

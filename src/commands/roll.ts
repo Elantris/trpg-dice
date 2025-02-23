@@ -1,12 +1,9 @@
 import { Embed, MessageFlags, SlashCommandBuilder } from 'discord.js'
-import OpenColor from 'open-color'
-import {
-  ERROR_DESCRIPTIONS,
-  type ApplicationCommandProps,
-} from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
-import rollDice from '../utils/rollDice'
-import sendLog from '../utils/sendLog'
+import OpenColor from 'open-color' with { type: 'json' }
+import { ApplicationCommandProps, ERROR_DESCRIPTIONS } from '../utils/cache.js'
+import colorFormatter from '../utils/colorFormatter.js'
+import rollDice from '../utils/rollDice.js'
+import sendLog from '../utils/sendLog.js'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()

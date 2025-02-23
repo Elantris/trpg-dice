@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { type RollResult } from '../utils/cache'
-import roll from './roll'
+import { RollResult } from '../utils/cache.js'
+import roll from './roll.js'
 
 const keepLowest: (count: number, sides: number, keep: number) => RollResult = (
   count,

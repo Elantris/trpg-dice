@@ -1,6 +1,6 @@
 import { sum } from 'ramda'
-import { type RollResult } from '../utils/cache'
-import randInt from '../utils/randInt'
+import { RollResult } from '../utils/cache.js'
+import randInt from '../utils/randInt.js'
 
 const rerollOnce: (
   count: number,
