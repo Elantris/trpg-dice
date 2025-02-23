@@ -2,13 +2,13 @@ import { MessageFlags, SlashCommandBuilder } from 'discord.js'
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import {
-  channels,
   database,
   guildLucks,
   type ApplicationCommandProps,
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import randInt from '../utils/randInt'
+import sendLog from '../utils/sendLog'
 
 type PoolProps = {
   id: string
@@ -187,23 +187,16 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
       withResponse: true,
     })
     const responseMessage = response.resource?.message
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.yellow[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: reset\nDate: ${options.date}`,
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
+Message: [Link](${responseMessage?.url})
+GuildId: \`${interaction.guild.id}\`
+Command: reset
+Date: ${options.date}
+`.trim(),
+      },
     })
-
     return
   }
 
@@ -253,30 +246,21 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
       withResponse: true,
     })
     const responseMessage = response.resource?.message
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.yellow[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `Message: [Link](${responseMessage?.url})\nGuildId: \`${interaction.guild.id}\`\nCommand: guild\nDate: ${options.date}`,
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
+Message: [Link](${responseMessage?.url})
+GuildId: \`${interaction.guild.id}\`
+Command: guild
+Date: ${options.date}
+`.trim(),
+      },
     })
     return
   }
 
   // check exist
-  if (
-    process.env['NODE_ENV'] !== 'development' &&
-    guildLucks[guildId][options.date]![interaction.user.id]
-  ) {
+  if (guildLucks[guildId][options.date]![interaction.user.id]) {
     await interaction.reply({
       content: ':x: 你今天已經抽過運勢了，請明天再來',
       flags: MessageFlags.Ephemeral,
@@ -312,27 +296,17 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     withResponse: true,
   })
   const responseMessage = response.resource?.message
-  const logMessage = await channels['logger'].send({
-    embeds: [
-      {
-        color: colorFormatter(OpenColor.yellow[5]),
-        author: {
-          icon_url: interaction.user.displayAvatarURL(),
-          name: interaction.user.tag,
-        },
-        description: `Message: [Link](${responseMessage?.url})\nPool: ${options.pool}\nLuck: ${playerLuck}/${totalWeights}\nResult: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)`,
-        timestamp: interaction.createdAt.toISOString(),
-        footer: {
-          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-        },
-      },
-    ],
+  await sendLog(responseMessage, interaction, {
+    embed: {
+      description: `
+Message: [Link](${responseMessage?.url})
+Pool: ${options.pool}
+Luck: ${playerLuck}/${totalWeights}
+Result: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)
+`.trim(),
+    },
+    isSave: !!responseMessage,
   })
-  if (responseMessage) {
-    await database
-      .ref(`/logs/${guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
-  }
 }
 
 export default {

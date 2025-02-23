@@ -21,7 +21,7 @@ const commands: {
 } = {}
 
 export const registerCommands = async (client: Client<true>) => {
-  const commandData: RESTPostAPIApplicationCommandsJSONBody[] = []
+  const body: RESTPostAPIApplicationCommandsJSONBody[] = []
 
   for (const filename of readdirSync(join(__dirname, './commands'))) {
     if (!filename.endsWith('.js') && !filename.endsWith('.ts')) {
@@ -32,15 +32,13 @@ export const registerCommands = async (client: Client<true>) => {
       await import(join(__dirname, './commands', filename))
     if (command?.execute && command.data) {
       commands[commandName] = command.execute
-      command.data.forEach((v) => commandData.push(v.toJSON()))
+      command.data.forEach((v) => body.push(v.toJSON()))
     }
   }
 
   const rest = new REST({ version: '10' }).setToken(client.token)
   try {
-    await rest.put(Routes.applicationCommands(client.user.id), {
-      body: commandData,
-    })
+    await rest.put(Routes.applicationCommands(client.user.id), { body })
   } catch (error) {
     await channels['logger'].send(
       `\`${timeFormatter()}\` Register slash commands error\n\`\`\`${

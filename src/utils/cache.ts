@@ -1,8 +1,8 @@
 import {
-  ButtonInteraction,
   ChatInputCommandInteraction,
   ContextMenuCommandBuilder,
   InteractionCallbackResponse,
+  MessageComponentInteraction,
   TextChannel,
   type Interaction,
   type SlashCommandOptionsOnlyBuilder,
@@ -11,6 +11,8 @@ import {
 import admin from 'firebase-admin'
 import coinFlipping from '../game/coinFlipping'
 import diceOddEven from '../game/diceOddEven'
+import handGame from '../game/handGame'
+import roulette from '../game/roulette'
 import slotMachine from '../game/slotMachine'
 import randInt from './randInt'
 
@@ -18,6 +20,7 @@ import randInt from './randInt'
 export const channels: {
   [key in string]: TextChannel
 } = {}
+
 export type ApplicationCommandProps = {
   data: (
     | SlashCommandOptionsOnlyBuilder
@@ -40,6 +43,7 @@ admin.initializeApp({
   }),
   databaseURL: 'https://trpg-dice-19e3e-default-rtdb.firebaseio.com',
 })
+
 export const database = admin.database()
 
 // command roll
@@ -47,11 +51,14 @@ export type RollResult = {
   value: number
   rolls: number[]
 }
+
 export const DICE_REGEXP = /\d*d\d+([a-z]+\d*){0,2}/gi // XdY, XdYaZbW
+
 export const EXPRESSION_REGEXP = new RegExp(
   `^([+\\-*/,]?(\\d+(\\.\\d+)?|${DICE_REGEXP.source}))*$`,
   'gi',
 ) // [+-*/,] [X.Y | XdYaZbW]
+
 export const ERROR_DESCRIPTIONS: Record<string, string> = {
   INVALID_TIMES: '算式重複計算次數限 1 ~ 10 次',
   INVALID_EXPRESSION: '無效的算式',
@@ -63,7 +70,6 @@ export const ERROR_DESCRIPTIONS: Record<string, string> = {
 }
 
 // command luck
-
 export const guildLucks: {
   [GuildID in string]?: {
     [Date in string]?: {
@@ -82,16 +88,19 @@ export const GameNames = {
   coinFlipping: '硬幣猜正反',
   diceOddEven: '骰子猜單雙',
   slotMachine: '拉霸機',
+  roulette: '幸運輪盤',
+  handGame: '猜拳',
 }
 
 export type GameProps = {
   create: (
     interaction: ChatInputCommandInteraction,
   ) => Promise<InteractionCallbackResponse>
-  execute: (interaction: ButtonInteraction) => Promise<{
+  execute: (interaction: MessageComponentInteraction) => Promise<{
     content: string
     luck: number | string
     result: string
+    betCoins: number
     rewardCoins: number
   } | void>
 }
@@ -102,10 +111,15 @@ export const Games: {
   coinFlipping,
   diceOddEven,
   slotMachine,
+  roulette,
+  handGame,
 }
+
+export const statusKeys = ['version', 'guilds'] as const
 
 export const botData: {
   readyAt: number
+  statusIndex: number
   message: {
     [GuildID in string]?: {
       [MemberID in string]?: number
@@ -118,6 +132,7 @@ export const botData: {
   }
 } = {
   readyAt: Date.now(),
+  statusIndex: 0,
   message: {},
   voice: {},
 }
@@ -132,10 +147,11 @@ export const guildConfigs: {
 } = {}
 
 export const guildMemberCoins: {
-  [GuildID in string]?: {
-    [MemberID in string]?: number
+  [GuildID in string]: {
+    [MemberID in string]: number
   }
 } = {}
+
 export const updatedMemberCoins: {
   [GuildID in string]?: {
     [MemberID in string]?: number
@@ -148,17 +164,12 @@ export const getMemberCoins = async (
   now = Date.now(),
 ) => {
   if (!guildMemberCoins[guildId]) {
-    guildMemberCoins[guildId] = {}
+    guildMemberCoins[guildId] =
+      (await database.ref(`/coins/${guildId}`).once('value')).val() || {}
   }
 
   if (typeof guildMemberCoins[guildId][memberId] === 'undefined') {
-    setMemberCoins(
-      guildId,
-      memberId,
-      (
-        await database.ref(`/coins/${guildId}/${memberId}`).once('value')
-      ).val() || 0,
-    )
+    guildMemberCoins[guildId][memberId] = 0
   }
 
   if (
@@ -166,17 +177,17 @@ export const getMemberCoins = async (
     guildConfigs[guildId]?.VoiceRewards
   ) {
     const minutes = Math.floor((now - botData.voice[guildId][memberId]) / 60000)
-    botData.voice[guildId][memberId] += minutes * 60000
-    setMemberCoins(
-      guildId,
-      memberId,
-      guildMemberCoins[guildId][memberId]! +
-        randInt(
-          guildConfigs[guildId].VoiceRewards.min,
-          guildConfigs[guildId].VoiceRewards.max,
-        ) *
-          minutes,
-    )
+    if (minutes) {
+      botData.voice[guildId][memberId] += minutes * 60000
+      const { min, max } = guildConfigs[guildId].VoiceRewards
+      const rewards = Array.from({ length: minutes }, () => randInt(min, max))
+      setMemberCoins(
+        guildId,
+        memberId,
+        guildMemberCoins[guildId][memberId] +
+          rewards.reduce((a, b) => a + b, 0),
+      )
+    }
   }
 
   return guildMemberCoins[guildId][memberId] || 0

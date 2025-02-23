@@ -1,4 +1,5 @@
 import {
+  AnySelectMenuInteraction,
   ButtonInteraction,
   ChannelType,
   ChatInputCommandInteraction,
@@ -11,7 +12,6 @@ import {
 import { DateTime } from 'luxon'
 import OpenColor from 'open-color'
 import {
-  channels,
   database,
   GameConfigNames,
   GameNames,
@@ -24,6 +24,7 @@ import {
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import isKeyOfObject from '../utils/isKeyOfObject'
+import sendLog from '../utils/sendLog'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -61,7 +62,7 @@ const data: ApplicationCommandProps['data'] = [
     .addSubcommand((command) =>
       command
         .setName('coins')
-        .setDescription('調整成員的硬幣數量（限管理員）')
+        .setDescription('調整成員的點數數量（限管理員）')
         .addUserOption((option) =>
           option.setName('member').setDescription('指定成員').setRequired(true),
         )
@@ -73,7 +74,9 @@ const data: ApplicationCommandProps['data'] = [
         ),
     )
     .addSubcommand((command) =>
-      command.setName('rank').setDescription('硬幣排行榜（限管理員）'),
+      command
+        .setName('rank')
+        .setDescription('查看伺服器成員點數排行榜（限管理員）'),
     )
     .addSubcommand((command) =>
       command
@@ -92,20 +95,22 @@ const data: ApplicationCommandProps['data'] = [
             ),
         )
         .addIntegerOption((option) =>
-          option.setName('bet').setDescription('下注數量').setRequired(true),
+          option.setName('bet').setDescription('下注點數').setRequired(true),
         ),
     ),
 ]
 
 const execute: ApplicationCommandProps['execute'] = async (interaction) => {
-  if (interaction.isButton()) {
-    await handleButton(interaction)
+  if (interaction.isMessageComponent()) {
+    await handleMessageComponent(interaction)
   } else if (interaction.isChatInputCommand()) {
     await handleChatInputCommand(interaction)
   }
 }
 
-const handleButton = async (interaction: ButtonInteraction) => {
+const handleMessageComponent = async (
+  interaction: AnySelectMenuInteraction | ButtonInteraction,
+) => {
   if (!interaction.guildId) {
     return
   }
@@ -119,6 +124,19 @@ const handleButton = async (interaction: ButtonInteraction) => {
   if (!isKeyOfObject(gameName, GameNames)) {
     await interaction.reply({
       content: ':x: 遊戲不存在',
+      flags: MessageFlags.Ephemeral,
+    })
+    return
+  }
+
+  if (action === 'check') {
+    const memberCoins = await getMemberCoins(
+      interaction.guildId,
+      interaction.user.id,
+      interaction.createdTimestamp,
+    )
+    await interaction.reply({
+      content: `:dart: 你目前擁有 :coin: ${memberCoins}`,
       flags: MessageFlags.Ephemeral,
     })
     return
@@ -146,6 +164,14 @@ const handleButton = async (interaction: ButtonInteraction) => {
       allowedMentions: { parse: [] },
       flags: MessageFlags.Ephemeral,
     })
+    await sendLog(null, interaction, {
+      embed: {
+        description: `
+Message: [Link](${interaction.message.url}) \`${interaction.customId}\`
+Response: ${content}
+`.trim(),
+      },
+    })
     return
   }
 
@@ -165,7 +191,7 @@ const handleButton = async (interaction: ButtonInteraction) => {
 
   if (memberCoins < betCoins) {
     await interaction.reply({
-      content: `:x: 參加遊戲需要 :coin: ${gameBet}，你目前擁有 :coin: ${memberCoins}`,
+      content: `:x: 參加遊戲至少需要 :coin: ${gameBet}，你目前擁有 :coin: ${memberCoins}`,
       flags: MessageFlags.Ephemeral,
     })
     return
@@ -173,37 +199,27 @@ const handleButton = async (interaction: ButtonInteraction) => {
 
   const result = await Games[gameName].execute(interaction)
   if (result) {
-    if (betCoins !== result.rewardCoins) {
-      setMemberCoins(
-        guildId,
-        memberId,
-        memberCoins - betCoins + result.rewardCoins,
-      )
+    const newMemberCoins = memberCoins - result.betCoins + result.rewardCoins
+    if (memberCoins !== newMemberCoins) {
+      setMemberCoins(guildId, memberId, newMemberCoins)
     }
 
     const threadMessage = await thread.send({
       content: result.content,
       allowedMentions: { parse: [] },
     })
-    await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.orange[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `
-Message: [Link](${threadMessage.url}) \`${interaction.customId}\`
+    await sendLog(threadMessage, interaction, {
+      embed: {
+        description: `
+Message: [Link](${threadMessage.url}) \`${interaction.customId}\` ${
+          interaction.isAnySelectMenu()
+            ? `\`${JSON.stringify(interaction.values)}\``
+            : ''
+        }
 Luck: \`${result.luck}\` ${result.result}
-Rewards: ${result.rewardCoins}
+Coins: ${memberCoins} - ${result.betCoins} + ${result.rewardCoins} = ${newMemberCoins}
 `.trim(),
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${threadMessage.createdTimestamp - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+      },
     })
   }
 }
@@ -308,11 +324,10 @@ const handleChatInputCommand = async (
       break
 
     case 'rank':
-      guildMemberCoins[guildId] = Object.assign(
-        {},
-        (await database.ref(`/coins/${guildId}`).once('value')).val() || {},
-        guildMemberCoins[guildId] || {},
-      )
+      if (!guildMemberCoins[guildId]) {
+        guildMemberCoins[guildId] =
+          (await database.ref(`/coins/${guildId}`).once('value')).val() || {}
+      }
 
       response = await interaction.reply({
         content: `:dart: ${interaction.guild.name} 排行`,
@@ -320,6 +335,7 @@ const handleChatInputCommand = async (
           {
             color: colorFormatter(OpenColor.orange[5]),
             description: Object.keys(guildMemberCoins[guildId]!)
+              .filter((userId) => userId !== '_')
               .sort(
                 (a, b) =>
                   guildMemberCoins[guildId]![b]! -
@@ -390,36 +406,22 @@ const handleChatInputCommand = async (
 
   const responseMessage = response?.resource?.message
   if (responseMessage) {
-    const logMessage = await channels['logger'].send({
-      embeds: [
-        {
-          color: colorFormatter(OpenColor.orange[5]),
-          author: {
-            icon_url: interaction.user.displayAvatarURL(),
-            name: interaction.user.tag,
-          },
-          description: `
+    await sendLog(responseMessage, interaction, {
+      embed: {
+        description: `
 Message: [Link](${responseMessage.url})
 Subcommand: ${interaction.options.getSubcommand()}
 Options: ${Object.keys(options)
-            .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
-            .join(' ')}
-Result: ${responseMessage.content}
+          .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
+          .join(' ')}
+Response: ${responseMessage.content}
 `.trim(),
-          timestamp: interaction.createdAt.toISOString(),
-          footer: {
-            text: `${responseMessage.createdTimestamp - interaction.createdTimestamp}ms`,
-          },
-        },
-      ],
+      },
     })
-    await database
-      .ref(`/logs/${guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
   }
 }
 
 export default {
-  data: process.env['NODE_ENV'] === 'development' ? data : undefined,
+  data,
   execute,
 }

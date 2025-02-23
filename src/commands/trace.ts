@@ -58,11 +58,12 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     return
   }
 
-  const logMessageId = (
-    await database
-      .ref(`/logs/${interaction.guildId}/${options.targetMessageId}`)
-      .once('value')
-  ).val()
+  const logMessageId: string =
+    (
+      await database
+        .ref(`/logs/${interaction.guildId}/${options.targetMessageId}`)
+        .once('value')
+    ).val() ?? ''
   if (!logMessageId) {
     await interaction.reply({
       content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,

@@ -1,13 +1,7 @@
 {
+  "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "nodenext",
-    "outDir": "./build",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "skipLibCheck": true
+    "outDir": "./build"
   },
   "include": ["./src/**/*.ts"]
 }

@@ -33,7 +33,7 @@ const handleVoiceStateUpdate = async (
     if (!botData.voice[guildId]) {
       botData.voice[guildId] = {}
     }
-    botData.voice[guildId][memberId] = Date.now()
+    botData.voice[guildId][memberId] = now
     return
   }
 }

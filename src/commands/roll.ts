@@ -1,13 +1,12 @@
-import { Embed, SlashCommandBuilder } from 'discord.js'
+import { Embed, MessageFlags, SlashCommandBuilder } from 'discord.js'
 import OpenColor from 'open-color'
 import {
   ERROR_DESCRIPTIONS,
-  channels,
-  database,
   type ApplicationCommandProps,
 } from '../utils/cache'
 import colorFormatter from '../utils/colorFormatter'
 import rollDice from '../utils/rollDice'
+import sendLog from '../utils/sendLog'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -113,41 +112,32 @@ const execute: ApplicationCommandProps['execute'] = async (
     content: commandError
       ? `:x: ${ERROR_DESCRIPTIONS[commandError.message] || ERROR_DESCRIPTIONS['INVALID_EXPRESSION']}`
       : responseContents.join('\n'),
-    ephemeral: !!commandError,
+    flags: commandError ? MessageFlags.Ephemeral : undefined,
     withResponse: true,
   })
   const responseMessage = response.resource?.message
-  const logMessage = await channels['logger'].send({
-    embeds: [
-      {
-        color: colorFormatter(
-          commandError ? OpenColor.red[5] : OpenColor.violet[5],
-        ),
-        author: {
-          icon_url: interaction.user.displayAvatarURL(),
-          name: interaction.user.tag,
-        },
-        description: `Message: [Link](${responseMessage?.url})\nExpression: \`${options.expression}\`\nTimes: ${options.times}`,
-        fields: commandError
-          ? [
-              {
-                name: 'Error',
-                value: `\`\`\`${commandError}\`\`\``,
-              },
-            ]
-          : logFields,
-        timestamp: interaction.createdAt.toISOString(),
-        footer: {
-          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
-        },
-      },
-    ],
+  await sendLog(responseMessage, interaction, {
+    commandName: 'roll',
+    embed: {
+      color: colorFormatter(
+        commandError ? OpenColor.red[5] : OpenColor.violet[5],
+      ),
+      description: `
+Message: [Link](${responseMessage?.url})
+Expression: \`${options.expression}\`
+Times: ${options.times}
+`.trim(),
+      fields: commandError
+        ? [
+            {
+              name: 'Error',
+              value: `\`\`\`${commandError}\`\`\``,
+            },
+          ]
+        : logFields,
+    },
+    isSave: !commandError && logFields.length > 0,
   })
-  if (responseMessage && logMessage.embeds?.[0]?.fields?.length) {
-    await database
-      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
-  }
 }
 
 export default {

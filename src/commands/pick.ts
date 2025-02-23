@@ -1,12 +1,7 @@
 import { MessageFlags, SlashCommandBuilder } from 'discord.js'
-import OpenColor from 'open-color'
-import {
-  channels,
-  database,
-  type ApplicationCommandProps,
-} from '../utils/cache'
-import colorFormatter from '../utils/colorFormatter'
+import { type ApplicationCommandProps } from '../utils/cache'
 import notEmpty from '../utils/notEmpty'
+import sendLog from '../utils/sendLog'
 
 const data: ApplicationCommandProps['data'] = [
   new SlashCommandBuilder()
@@ -52,41 +47,24 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     withResponse: true,
   })
   const responseMessage = response.resource?.message
-  const logMessage = await channels['logger'].send({
-    embeds: [
-      {
-        color: colorFormatter(OpenColor.cyan[5]),
-        author: {
-          icon_url: interaction.user.displayAvatarURL(),
-          name: interaction.user.tag,
+  await sendLog(responseMessage, interaction, {
+    embed: {
+      description: `Message: [Link](${responseMessage?.url})\nChoices: ${options.choices.length}`,
+      fields: [
+        {
+          name: 'Choices',
+          value: options.choices.map((v, i) => `\`${i + 1},\` ${v}`).join('\n'),
+          inline: true,
         },
-        description: `Message: [Link](${responseMessage?.url})\nChoices: ${options.choices.length}`,
-        fields: [
-          {
-            name: 'Choices',
-            value: options.choices
-              .map((v, i) => `\`${i + 1},\` ${v}`)
-              .join('\n'),
-            inline: true,
-          },
-          {
-            name: 'Picked',
-            value: `\`${pickedIndex + 1},\` ${options.choices[pickedIndex]}`,
-            inline: true,
-          },
-        ],
-        timestamp: interaction.createdAt.toISOString(),
-        footer: {
-          text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,
+        {
+          name: 'Picked',
+          value: `\`${pickedIndex + 1},\` ${options.choices[pickedIndex]}`,
+          inline: true,
         },
-      },
-    ],
+      ],
+    },
+    isSave: !!responseMessage,
   })
-  if (responseMessage) {
-    await database
-      .ref(`/logs/${interaction.guildId}/${responseMessage.id}`)
-      .set(logMessage.id)
-  }
 }
 
 export default {
