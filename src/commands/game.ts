@@ -254,7 +254,7 @@ const handleChatInputCommand = async (
   switch (interaction.options.getSubcommand()) {
     case 'config':
       options.key = interaction.options.getString('key', true)
-      const [configMin, configMax] = [
+      ;[options.min, options.max] = [
         interaction.options.getInteger('min', true),
         interaction.options.getInteger('max', true),
       ].sort((a, b) => a - b)
@@ -267,7 +267,7 @@ const handleChatInputCommand = async (
         return
       }
 
-      if (configMin < 1 || configMax > 10000) {
+      if (options.min < 1 || options.max > 10000) {
         delete guildConfigs[guildId]?.[options.key]
         await database.ref(`/configs/${guildId}/${options.key}`).remove()
         response = await interaction.reply({
@@ -286,14 +286,14 @@ const handleChatInputCommand = async (
           max: 0,
         }
       }
-      guildConfigs[guildId][options.key]!.min = configMin
-      guildConfigs[guildId][options.key]!.max = configMax
+      guildConfigs[guildId][options.key]!.min = options.min
+      guildConfigs[guildId][options.key]!.max = options.max
       await database
         .ref(`/configs/${guildId}/${options.key}`)
-        .set({ min: configMin, max: configMax })
+        .set({ min: options.min, max: options.max })
 
       response = await interaction.reply({
-        content: `:gear: 設定 ${GameConfigNames[options.key]} 為 ${configMin} ~ ${configMax}`,
+        content: `:gear: 設定 ${GameConfigNames[options.key]} 為 ${options.min} ~ ${options.max}`,
         withResponse: true,
       })
       break
