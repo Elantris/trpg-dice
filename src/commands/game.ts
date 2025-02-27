@@ -334,8 +334,7 @@ const handleChatInputCommand = async (
         embeds: [
           {
             color: colorFormatter(OpenColor.orange[5]),
-            description: Object.keys(guildMemberCoins[guildId]!)
-              .filter((userId) => userId !== '_')
+            description: Object.keys(guildMemberCoins[guildId])
               .sort(
                 (a, b) =>
                   guildMemberCoins[guildId]![b]! -
