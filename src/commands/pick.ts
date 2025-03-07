@@ -49,7 +49,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   const responseMessage = response.resource?.message
   await sendLog(responseMessage, interaction, {
     embed: {
-      description: `Message: [Link](${responseMessage?.url})\nChoices: ${options.choices.length}`,
+      description: `Choices: ${options.choices.length}`,
       fields: [
         {
           name: 'Choices',

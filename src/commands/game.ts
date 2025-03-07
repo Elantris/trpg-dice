@@ -114,6 +114,8 @@ const handleMessageComponent = async (
   if (!interaction.guildId) {
     return
   }
+  const guildId = interaction.guildId
+  const memberId = interaction.user.id
 
   const [commandName, gameName, gameBet, action] =
     interaction.customId.split('_')
@@ -131,8 +133,8 @@ const handleMessageComponent = async (
 
   if (action === 'check') {
     const memberCoins = await getMemberCoins(
-      interaction.guildId,
-      interaction.user.id,
+      guildId,
+      memberId,
       interaction.createdTimestamp,
     )
     await interaction.reply({
@@ -152,7 +154,7 @@ const handleMessageComponent = async (
       })
       return
     }
-    const content = `:dart: <@!${interaction.user.id}> 結束了遊戲 <t:${DateTime.fromMillis(interaction.createdTimestamp).toFormat('X')}:R>`
+    const content = `:dart: <@!${memberId}> 結束了遊戲 <t:${DateTime.fromMillis(interaction.createdTimestamp).toFormat('X')}:R>`
     await interaction.message.edit({
       content: `${interaction.message.content}\n${content}`,
       embeds: interaction.message.embeds,
@@ -167,7 +169,8 @@ const handleMessageComponent = async (
     await sendLog(null, interaction, {
       embed: {
         description: `
-Message: [Link](${interaction.message.url}) \`${interaction.customId}\`
+Interaction: \`${interaction.customId}\`
+Guild: \`${guildId}\`
 Response: ${content}
 `.trim(),
       },
@@ -176,12 +179,14 @@ Response: ${content}
   }
 
   let thread = interaction.message.thread
-  if (thread?.type !== ChannelType.PublicThread) {
+  if (thread?.type !== ChannelType.PublicThread || thread.locked) {
+    await interaction.reply({
+      content: `:x: 討論串不存在`,
+      flags: MessageFlags.Ephemeral,
+    })
     return
   }
 
-  const guildId = interaction.guildId
-  const memberId = interaction.user.id
   const memberCoins = await getMemberCoins(
     guildId,
     memberId,
@@ -191,7 +196,7 @@ Response: ${content}
 
   if (memberCoins < betCoins) {
     await interaction.reply({
-      content: `:x: 參加遊戲至少需要 :coin: ${gameBet}，你目前擁有 :coin: ${memberCoins}`,
+      content: `:x: 參加遊戲需要 :coin: ${betCoins}，你目前擁有 :coin: ${memberCoins}`,
       flags: MessageFlags.Ephemeral,
     })
     return
@@ -211,11 +216,13 @@ Response: ${content}
     await sendLog(threadMessage, interaction, {
       embed: {
         description: `
-Message: [Link](${threadMessage.url}) \`${interaction.customId}\` ${
-          interaction.isAnySelectMenu()
-            ? `\`${JSON.stringify(interaction.values)}\``
-            : ''
-        }
+Interaction: \`${interaction.customId}\`
+${
+  interaction.isAnySelectMenu()
+    ? `Values: \`${JSON.stringify(interaction.values)}\``
+    : ''
+}
+Guild: \`${guildId}\`
 Luck: \`${result.luck}\` ${result.result}
 Coins: ${memberCoins} - ${result.betCoins} + ${result.rewardCoins} = ${newMemberCoins}
 `.trim(),
@@ -404,20 +411,18 @@ const handleChatInputCommand = async (
   }
 
   const responseMessage = response?.resource?.message
-  if (responseMessage) {
-    await sendLog(responseMessage, interaction, {
-      embed: {
-        description: `
-Message: [Link](${responseMessage.url})
+  await sendLog(responseMessage, interaction, {
+    embed: {
+      description: `
+Guild: ${interaction.guild.name} \`${guildId}\`
 Subcommand: ${interaction.options.getSubcommand()}
 Options: ${Object.keys(options)
-          .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
-          .join(' ')}
-Response: ${responseMessage.content}
+        .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
+        .join(' ')}
+Response: ${responseMessage?.content}
 `.trim(),
-      },
-    })
-  }
+    },
+  })
 }
 
 export default {

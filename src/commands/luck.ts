@@ -186,8 +186,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     await sendLog(responseMessage, interaction, {
       embed: {
         description: `
-Message: [Link](${responseMessage?.url})
-GuildId: \`${interaction.guild.id}\`
+Guild: \`${guildId}\`
 Command: reset
 Date: ${options.date}
 `.trim(),
@@ -245,8 +244,7 @@ Date: ${options.date}
     await sendLog(responseMessage, interaction, {
       embed: {
         description: `
-Message: [Link](${responseMessage?.url})
-GuildId: \`${interaction.guild.id}\`
+Guild: \`${interaction.guild.id}\`
 Command: guild
 Date: ${options.date}
 `.trim(),
@@ -295,7 +293,7 @@ Date: ${options.date}
   await sendLog(responseMessage, interaction, {
     embed: {
       description: `
-Message: [Link](${responseMessage?.url})
+Guild: \`${guildId}\`
 Pool: ${options.pool}
 Luck: ${playerLuck}/${totalWeights}
 Result: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)
