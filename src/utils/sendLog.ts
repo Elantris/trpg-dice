@@ -50,6 +50,8 @@ const sendLog = async (
       icon_url: interaction.user.displayAvatarURL(),
       name: interaction.user.tag,
     },
+    title: `${interaction.guild?.name || interaction.guildId}`,
+    url: responseMessage?.url,
     timestamp: interaction.createdAt.toISOString(),
     footer: {
       text: `${(responseMessage?.createdTimestamp || Date.now()) - interaction.createdTimestamp}ms`,

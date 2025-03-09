@@ -120,7 +120,6 @@ const execute: ApplicationCommandProps['execute'] = async (
         commandError ? OpenColor.red[5] : OpenColor.violet[5],
       ),
       description: `
-Message: [Link](${responseMessage?.url})
 Expression: \`${options.expression}\`
 Times: ${options.times}
 `.trim(),

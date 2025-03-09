@@ -12,7 +12,6 @@ import sendLog from '../utils/sendLog.js'
 
 type PoolProps = {
   id: string
-  sort: number
   name: string
   guildIds?: string[]
   items: {
@@ -24,7 +23,6 @@ type PoolProps = {
 const pools: PoolProps[] = [
   {
     id: 'default',
-    sort: 0,
     name: '7 段運勢',
     items: [
       { weight: 100, text: ':nauseated_face: 大凶' },
@@ -38,7 +36,6 @@ const pools: PoolProps[] = [
   },
   {
     id: 'twelve',
-    sort: 1,
     name: '12 段運勢',
     items: [
       { weight: 100, text: ':nauseated_face: 大凶' },
@@ -57,7 +54,6 @@ const pools: PoolProps[] = [
   },
   {
     id: 'asakusa',
-    sort: 2,
     name: '淺草籤運勢',
     items: [
       { weight: 30, text: ':green_circle: 凶' },
@@ -190,8 +186,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     await sendLog(responseMessage, interaction, {
       embed: {
         description: `
-Message: [Link](${responseMessage?.url})
-GuildId: \`${interaction.guild.id}\`
+Guild: \`${guildId}\`
 Command: reset
 Date: ${options.date}
 `.trim(),
@@ -249,8 +244,7 @@ Date: ${options.date}
     await sendLog(responseMessage, interaction, {
       embed: {
         description: `
-Message: [Link](${responseMessage?.url})
-GuildId: \`${interaction.guild.id}\`
+Guild: \`${interaction.guild.id}\`
 Command: guild
 Date: ${options.date}
 `.trim(),
@@ -299,7 +293,7 @@ Date: ${options.date}
   await sendLog(responseMessage, interaction, {
     embed: {
       description: `
-Message: [Link](${responseMessage?.url})
+Guild: \`${guildId}\`
 Pool: ${options.pool}
 Luck: ${playerLuck}/${totalWeights}
 Result: ${resultItem.text} (${((resultItem.weight * 100) / totalWeights).toFixed(2)}%)

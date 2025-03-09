@@ -8,7 +8,7 @@
     "start": "node build/main.js",
     "dev": "NODE_ENV=development bun run src/main.ts",
     "format": "prettier --write src",
-    "build": "rm -rf ./build/* && ./node_modules/.bin/tsc",
+    "build": "./node_modules/.bin/trash ./build/* && ./node_modules/.bin/tsc",
     "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000",
     "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice"
   },
@@ -27,21 +27,23 @@
     "@firebase/app-types": "^0.9.3",
     "@tsconfig/node-lts": "^22.0.1",
     "@types/luxon": "^3.4.2",
-    "@types/node": "^22.13.5",
+    "@types/node": "^22.13.9",
     "@types/ramda": "^0.30.2",
-    "@types/ws": "^8.5.14",
+    "@types/ws": "^8.18.0",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
-    "firebase-admin": "^13.1.0",
+    "firebase-admin": "^13.2.0",
     "luxon": "^3.5.0",
     "open-color": "^1.9.1",
-    "prettier": "^3.5.2",
+    "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "ramda": "^0.30.1",
-    "typescript": "^5.7.3"
+    "trash-cli": "^6.0.0",
+    "typescript": "^5.8.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@firebase/util",
       "protobufjs"
     ]
   }
