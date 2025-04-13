@@ -108,7 +108,10 @@ const handleInteraction = async (interaction: Interaction<CacheType>) => {
         embeds: [
           {
             color: colorFormatter(OpenColor.red[5]),
-            description: `\`\`\`${error instanceof Error ? error.stack : error}\`\`\``,
+            description: `
+Guild: \`${interaction.guild?.id}\` ${interaction.guild?.name}
+\`\`\`${error instanceof Error ? error.stack : error}\`\`\`
+`.trim(),
           },
         ],
       })

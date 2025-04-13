@@ -7,6 +7,7 @@ import {
   guildLucks,
 } from '../utils/cache.js'
 import colorFormatter from '../utils/colorFormatter.js'
+import isAdmin from '../utils/isAdmin.js'
 import randInt from '../utils/randInt.js'
 import sendLog from '../utils/sendLog.js'
 
@@ -167,7 +168,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
   if (options.subcommand === 'reset') {
     if (
       member.id !== '156935214780776448' &&
-      !member.permissions.has('Administrator')
+      !isAdmin(interaction.guild, interaction.user.id)
     ) {
       await interaction.reply({
         content: `:lock: 你沒有權限使用此指令`,

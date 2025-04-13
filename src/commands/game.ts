@@ -5,7 +5,6 @@ import {
   ChatInputCommandInteraction,
   InteractionCallbackResponse,
   MessageFlags,
-  PermissionFlagsBits,
   SlashCommandBuilder,
   User,
 } from 'discord.js'
@@ -23,6 +22,7 @@ import {
   setMemberCoins,
 } from '../utils/cache.js'
 import colorFormatter from '../utils/colorFormatter.js'
+import isAdmin from '../utils/isAdmin.js'
 import isKeyOfObject from '../utils/isKeyOfObject.js'
 import sendLog from '../utils/sendLog.js'
 
@@ -111,7 +111,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
 const handleMessageComponent = async (
   interaction: AnySelectMenuInteraction | ButtonInteraction,
 ) => {
-  if (!interaction.guildId) {
+  if (!interaction.guildId || !interaction.guild) {
     return
   }
   const guildId = interaction.guildId
@@ -145,9 +145,7 @@ const handleMessageComponent = async (
   }
 
   if (action === 'end') {
-    if (
-      !interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)
-    ) {
+    if (!isAdmin(interaction.guild, memberId)) {
       await interaction.reply({
         content: ':lock: 只有管理員可以結束遊戲',
         flags: MessageFlags.Ephemeral,
@@ -209,10 +207,12 @@ Response: ${content}
       setMemberCoins(guildId, memberId, newMemberCoins)
     }
 
-    const threadMessage = await thread.send({
-      content: result.content,
-      allowedMentions: { parse: [] },
-    })
+    const threadMessage = await thread
+      .send({
+        content: result.content,
+        allowedMentions: { parse: [] },
+      })
+      .catch(() => null)
     await sendLog(threadMessage, interaction, {
       embed: {
         description: `
@@ -238,7 +238,7 @@ const handleChatInputCommand = async (
     return
   }
 
-  if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+  if (!isAdmin(interaction.guild, interaction.user.id)) {
     await interaction.reply({
       content: ':lock: 只有管理員可以使用這個指令',
       flags: MessageFlags.Ephemeral,
@@ -349,7 +349,7 @@ const handleChatInputCommand = async (
               )
               .slice(0, 10)
               .map((userId, index) =>
-                `${index + 1}. <@!${userId}> :coin: ${guildMemberCoins[guildId]?.[userId] || 0} ${interaction.guild?.members.cache.get(userId)?.permissions?.has(PermissionFlagsBits.Administrator) ? '(Admin)' : ''}`.trim(),
+                `${index + 1}. <@!${userId}> :coin: ${guildMemberCoins[guildId]?.[userId] || 0} ${isAdmin(interaction.guild!, userId) ? '(Admin)' : ''}`.trim(),
               )
               .join('\n'),
           },
@@ -385,25 +385,18 @@ const handleChatInputCommand = async (
         return
       }
 
-      if (
-        !channel
-          ?.permissionsFor(interaction.client.user)
-          ?.has(PermissionFlagsBits.CreatePublicThreads) ||
-        !channel
-          ?.permissionsFor(interaction.client.user)
-          ?.has(PermissionFlagsBits.SendMessagesInThreads)
-      ) {
+      try {
+        response = await Games[options.name].create(interaction)
+        await response.resource?.message?.startThread({
+          name: `${GameNames[options.name]} (${options.bet})`,
+        })
+      } catch {
         await interaction.reply({
-          content: `:x: eeDice 在 <#${channel.id}> 需要權限：「建立公開討論串」、「在討論串中傳送訊息」`,
+          content: `:lock: eeDice 在 <#${channel.id}> 需要權限：「建立公開討論串」、「在討論串中傳送訊息」`,
           flags: MessageFlags.Ephemeral,
         })
         return
       }
-
-      response = await Games[options.name].create(interaction)
-      await response.resource?.message?.startThread({
-        name: `${GameNames[options.name]} (${options.bet})`,
-      })
       break
 
     default:
@@ -414,7 +407,7 @@ const handleChatInputCommand = async (
   await sendLog(responseMessage, interaction, {
     embed: {
       description: `
-Guild: ${interaction.guild.name} \`${guildId}\`
+Guild: \`${guildId}\` ${interaction.guild.name}
 Subcommand: ${interaction.options.getSubcommand()}
 Options: ${Object.keys(options)
         .map((key) => `\`${key}:${options[key as keyof typeof options]}\``)
