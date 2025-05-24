@@ -116,8 +116,6 @@ export const Games: {
   handGame,
 }
 
-export const statusKeys = ['version', 'guilds'] as const
-
 export const botData: {
   readyAt: number
   message: {
@@ -179,7 +177,12 @@ export const getMemberCoins = async (
     if (minutes) {
       botData.voice[guildId][memberId] += minutes * 60000
       const { min, max } = guildConfigs[guildId].VoiceRewards
-      const rewards = Array.from({ length: minutes }, () => randInt(min, max))
+      const rewards = Array.from({ length: minutes }, () =>
+        randInt(
+          Math.min(Math.max(min, 0), 100),
+          Math.min(Math.max(max, 0), 100),
+        ),
+      )
       setMemberCoins(
         guildId,
         memberId,

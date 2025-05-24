@@ -53,12 +53,12 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
       fields: [
         {
           name: 'Choices',
-          value: options.choices.map((v, i) => `\`${i + 1},\` ${v}`).join('\n'),
+          value: options.choices.map((v, i) => `\`${i + 1}:\` ${v}`).join('\n'),
           inline: true,
         },
         {
           name: 'Picked',
-          value: `\`${pickedIndex + 1},\` ${options.choices[pickedIndex]}`,
+          value: `\`${pickedIndex + 1}:\` ${options.choices[pickedIndex]}`,
           inline: true,
         },
       ],

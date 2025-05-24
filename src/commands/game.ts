@@ -49,13 +49,13 @@ const data: ApplicationCommandProps['data'] = [
         .addIntegerOption((option) =>
           option
             .setName('min')
-            .setDescription('參數最小值 1 ~ 10000，超出範圍代表刪除')
+            .setDescription('參數最小值 1 ~ 100，超出範圍代表刪除')
             .setRequired(true),
         )
         .addIntegerOption((option) =>
           option
             .setName('max')
-            .setDescription('參數最大值 1 ~ 10000，超出範圍代表刪除')
+            .setDescription('參數最大值 1 ~ 100，超出範圍代表刪除')
             .setRequired(true),
         ),
     )
@@ -274,7 +274,7 @@ const handleChatInputCommand = async (
         return
       }
 
-      if (options.min < 1 || options.max > 10000) {
+      if (options.min < 1 || options.max > 100) {
         delete guildConfigs[guildId]?.[options.key]
         await database.ref(`/configs/${guildId}/${options.key}`).remove()
         response = await interaction.reply({

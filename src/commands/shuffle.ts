@@ -66,14 +66,14 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
         {
           name: 'Input',
           value: options.items
-            .map((element, index) => `\`${index + 1},\` ${element}`)
+            .map((element, index) => `\`${index + 1}:\` ${element}`)
             .join('\n'),
           inline: true,
         },
         {
           name: 'Result',
           value: orders
-            .map((order) => `\`${order + 1},\` ${options.items[order]}`)
+            .map((order) => `\`${order + 1}:\` ${options.items[order]}`)
             .join('\n'),
           inline: true,
         },
