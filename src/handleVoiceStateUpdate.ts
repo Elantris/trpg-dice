@@ -18,21 +18,15 @@ const handleVoiceStateUpdate = async (
   }
 
   if (oldState.channelId && !newState.channelId) {
-    if (!botData.voice[guildId]) {
-      botData.voice[guildId] = {}
-    }
-    if (!botData.voice[guildId][memberId]) {
-      botData.voice[guildId][memberId] = botData.readyAt
-    }
+    botData.voice[guildId] ??= {}
+    botData.voice[guildId][memberId] ??= botData.readyAt
     await getMemberCoins(guildId, memberId, now)
     delete botData.voice[guildId][memberId]
     return
   }
 
   if (!oldState.channelId && newState.channelId) {
-    if (!botData.voice[guildId]) {
-      botData.voice[guildId] = {}
-    }
+    botData.voice[guildId] ??= {}
     botData.voice[guildId][memberId] = now
     return
   }

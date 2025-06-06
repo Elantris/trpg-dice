@@ -40,9 +40,7 @@ const handleMessage = async (
       ),
   )
 
-  if (!botData.message[guildId]) {
-    botData.message[guildId] = {}
-  }
+  botData.message[guildId] ??= {}
   botData.message[guildId][userId] = message.createdTimestamp
 }
 

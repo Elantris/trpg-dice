@@ -12,6 +12,7 @@ import admin from 'firebase-admin'
 import appConfig from '../appConfig.js'
 import coinFlipping from '../game/coinFlipping.js'
 import diceOddEven from '../game/diceOddEven.js'
+import gacha from '../game/gacha.js'
 import handGame from '../game/handGame.js'
 import roulette from '../game/roulette.js'
 import slotMachine from '../game/slotMachine.js'
@@ -91,6 +92,7 @@ export const GameNames = {
   slotMachine: '拉霸機',
   roulette: '幸運輪盤',
   handGame: '猜拳',
+  gacha: '抽卡',
 }
 
 export type GameProps = {
@@ -114,6 +116,7 @@ export const Games: {
   slotMachine,
   roulette,
   handGame,
+  gacha,
 }
 
 export const botData: {
@@ -165,9 +168,7 @@ export const getMemberCoins = async (
       (await database.ref(`/coins/${guildId}`).once('value')).val() || {}
   }
 
-  if (typeof guildMemberCoins[guildId][memberId] === 'undefined') {
-    guildMemberCoins[guildId][memberId] = 0
-  }
+  guildMemberCoins[guildId][memberId] ??= 0
 
   if (
     botData.voice[guildId]?.[memberId] &&
@@ -200,13 +201,8 @@ export const setMemberCoins = (
   memberId: string,
   coins: number,
 ) => {
-  if (!guildMemberCoins[guildId]) {
-    guildMemberCoins[guildId] = {}
-  }
+  guildMemberCoins[guildId] ??= {}
   guildMemberCoins[guildId][memberId] = coins
-
-  if (!updatedMemberCoins[guildId]) {
-    updatedMemberCoins[guildId] = {}
-  }
+  updatedMemberCoins[guildId] ??= {}
   updatedMemberCoins[guildId][memberId] = coins
 }

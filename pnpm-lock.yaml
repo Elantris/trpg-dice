@@ -47,9 +47,15 @@ importers:
       prettier-plugin-organize-imports:
         specifier: ^4.1.0
         version: 4.1.0(prettier@3.5.3)(typescript@5.8.3)
+      pretty-quick:
+        specifier: ^4.2.2
+        version: 4.2.2(prettier@3.5.3)
       ramda:
         specifier: ^0.30.1
         version: 0.30.1
+      simple-git-hooks:
+        specifier: ^2.13.0
+        version: 2.13.0
       trash-cli:
         specifier: ^6.0.0
         version: 6.0.0
@@ -157,6 +163,10 @@ packages:
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
+
+  '@pkgr/core@0.2.7':
+    resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
+    engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -558,6 +568,10 @@ packages:
   ignore@3.3.10:
     resolution: {integrity: sha512-Pgs951kaMm5GXP7MOvxERINe3gsaVjUWFm+UZPSq9xYriQAksyhg0csnS0KXSNRD5NmNdapXEpjxG49+AKh/ug==}
 
+  ignore@7.0.5:
+    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
+    engines: {node: '>= 4'}
+
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
     deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
@@ -698,6 +712,10 @@ packages:
     resolution: {integrity: sha512-4aE3U7CCBWgrQlQDMq8da4woBWDGHioJFiOZ8Ie6Yq2uwYQ9V2kGhTz4x3u6Wc+OU17nw0yc3rJ/lQ4jIiPe3A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  mri@1.2.0:
+    resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
+    engines: {node: '>=4'}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -764,6 +782,13 @@ packages:
     resolution: {integrity: sha512-T2ZUsdZFHgA3u4e5PfPbjd7HDDpxPnQb5jN0SrDsjNSuVXHJqtwTnWqG0B1jZrgmJ/7lj1EmVIByWt1gxGkWvg==}
     engines: {node: '>=4'}
 
+  picocolors@1.1.1:
+    resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
+
+  picomatch@4.0.2:
+    resolution: {integrity: sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==}
+    engines: {node: '>=12'}
+
   pify@2.3.0:
     resolution: {integrity: sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==}
     engines: {node: '>=0.10.0'}
@@ -794,6 +819,13 @@ packages:
     resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
     engines: {node: '>=14'}
     hasBin: true
+
+  pretty-quick@4.2.2:
+    resolution: {integrity: sha512-uAh96tBW1SsD34VhhDmWuEmqbpfYc/B3j++5MC/6b3Cb8Ow7NJsvKFhg0eoGu2xXX+o9RkahkTK6sUdd8E7g5w==}
+    engines: {node: '>=14'}
+    hasBin: true
+    peerDependencies:
+      prettier: ^3.0.0
 
   proto3-json-serializer@2.0.2:
     resolution: {integrity: sha512-SAzp/O4Yh02jGdRc+uIrGoe87dkN/XtwxfZ4ZyafJHymd79ozp5VG5nyZ7ygqPM5+cpLDjjGnYFUkngonyDPOQ==}
@@ -844,6 +876,10 @@ packages:
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
+  simple-git-hooks@2.13.0:
+    resolution: {integrity: sha512-N+goiLxlkHJlyaYEglFypzVNMaNplPAk5syu0+OPp/Bk6dwVoXF6FfOw2vO0Dp+JHsBaI+w6cm8TnFl2Hw6tDA==}
+    hasBin: true
+
   slash@1.0.0:
     resolution: {integrity: sha512-3TYDR7xWt4dIqV2JauJr+EJeW356RXijHeUlO+8djJ+uBXPn8/2dpzBc8yQhh583sVvc9CvFAeQVgijsH+PNNg==}
     engines: {node: '>=0.10.0'}
@@ -878,6 +914,9 @@ packages:
   teeny-request@9.0.0:
     resolution: {integrity: sha512-resvxdc6Mgb7YEThw6G6bExlXKkv6+YbuzGg9xuXxSgxJF7Ozs+o8Y9+2R3sArdWdW8nOokoQb1yrpFB0pQK2g==}
     engines: {node: '>=14'}
+
+  tinyexec@0.3.2:
+    resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
@@ -1158,6 +1197,8 @@ snapshots:
 
   '@opentelemetry/api@1.9.0':
     optional: true
+
+  '@pkgr/core@0.2.7': {}
 
   '@protobufjs/aspromise@1.1.2':
     optional: true
@@ -1685,6 +1726,8 @@ snapshots:
 
   ignore@3.3.10: {}
 
+  ignore@7.0.5: {}
+
   inflight@1.0.6:
     dependencies:
       once: 1.4.0
@@ -1828,6 +1871,8 @@ snapshots:
     dependencies:
       path-exists: 5.0.0
 
+  mri@1.2.0: {}
+
   ms@2.1.3: {}
 
   node-fetch@2.7.0:
@@ -1874,6 +1919,10 @@ snapshots:
     dependencies:
       pify: 3.0.0
 
+  picocolors@1.1.1: {}
+
+  picomatch@4.0.2: {}
+
   pify@2.3.0: {}
 
   pify@3.0.0: {}
@@ -1890,6 +1939,17 @@ snapshots:
       typescript: 5.8.3
 
   prettier@3.5.3: {}
+
+  pretty-quick@4.2.2(prettier@3.5.3):
+    dependencies:
+      '@pkgr/core': 0.2.7
+      ignore: 7.0.5
+      mri: 1.2.0
+      picocolors: 1.1.1
+      picomatch: 4.0.2
+      prettier: 3.5.3
+      tinyexec: 0.3.2
+      tslib: 2.8.1
 
   proto3-json-serializer@2.0.2:
     dependencies:
@@ -1954,6 +2014,8 @@ snapshots:
 
   signal-exit@3.0.7: {}
 
+  simple-git-hooks@2.13.0: {}
+
   slash@1.0.0: {}
 
   stream-events@1.0.5:
@@ -2000,6 +2062,8 @@ snapshots:
       - encoding
       - supports-color
     optional: true
+
+  tinyexec@0.3.2: {}
 
   tr46@0.0.3: {}
 

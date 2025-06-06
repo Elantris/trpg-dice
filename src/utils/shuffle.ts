@@ -1,9 +1,10 @@
-const shuffle = <T>(target: T[]) => {
-  for (let i = target.length - 1; i !== 0; i--) {
+const shuffle = <T>(items: T[]) => {
+  const newItems = [...items]
+  for (let i = newItems.length - 1; i !== 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[target[i], target[j]] = [target[j], target[i]]
+    ;[newItems[i], newItems[j]] = [newItems[j], newItems[i]]
   }
-  return target
+  return newItems
 }
 
 export default shuffle

@@ -62,7 +62,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     ).val() ?? ''
   if (!logMessageId) {
     await interaction.reply({
-      content: `:x: \`${options.targetMessageId}\` 沒有擲骰紀錄`,
+      content: `:x: \`${options.targetMessageId}\` 沒有紀錄`,
       flags: MessageFlags.Ephemeral,
     })
     return
@@ -73,7 +73,7 @@ const execute: ApplicationCommandProps['execute'] = async (interaction) => {
     .catch(() => null)
   if (!logMessage) {
     await interaction.reply({
-      content: `:question: \`${logMessageId}\` 可能因歷史悠久而紀錄遺失了`,
+      content: `:question: \`${logMessageId}\` 紀錄遺失在世界的角落隨著歷史洪流消失無蹤`,
       flags: MessageFlags.Ephemeral,
     })
     return
