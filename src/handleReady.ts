@@ -35,7 +35,7 @@ const handleReady = async (client: Client<true>) => {
 
   // bot activity
   setInterval(() => {
-    client.user.setActivity(`on ${client.guilds.cache.size} guilds.`)
+    client.user.setActivity(`${client.guilds.cache.size}`)
   }, 30000)
 
   // update member coins

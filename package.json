@@ -5,10 +5,10 @@
   "type": "module",
   "main": "src/main.ts",
   "scripts": {
-    "start": "node build/main.js",
-    "dev": "NODE_ENV=development bun run src/main.ts",
     "format": "prettier --write src",
+    "dev": "NODE_ENV=development bun run src/main.ts",
     "build": "./node_modules/.bin/trash ./build/* && ./node_modules/.bin/tsc",
+    "start": "node build/main.js",
     "pm2": "pm2 start build/main.js --name trpg-dice --restart-delay 60000",
     "restart": "pm2 stop trpg-dice && pm2 reset trpg-dice && pm2 start trpg-dice"
   },
@@ -25,21 +25,21 @@
   "homepage": "https://github.com/Elantris/trpg-dice#readme",
   "dependencies": {
     "@firebase/app-types": "^0.9.3",
-    "@tsconfig/node-lts": "^22.0.1",
-    "@types/luxon": "^3.6.2",
-    "@types/node": "^22.15.21",
-    "@types/ramda": "^0.30.2",
+    "@tsconfig/node-lts": "^22.0.2",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^24.10.0",
+    "@types/ramda": "^0.31.1",
     "@types/ws": "^8.18.1",
-    "discord.js": "^14.19.3",
-    "dotenv": "^16.5.0",
-    "firebase-admin": "^13.4.0",
-    "luxon": "^3.6.1",
+    "discord.js": "^14.24.2",
+    "dotenv": "^17.2.3",
+    "firebase-admin": "^13.6.0",
+    "luxon": "^3.7.2",
     "open-color": "^1.9.1",
-    "prettier": "^3.5.3",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "ramda": "^0.30.1",
-    "trash-cli": "^6.0.0",
-    "typescript": "^5.8.3"
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "ramda": "^0.32.0",
+    "trash-cli": "^7.0.0",
+    "typescript": "^5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
